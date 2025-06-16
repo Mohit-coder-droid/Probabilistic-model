@@ -17,14 +17,14 @@ class ProbModel(ABC):
     def predict(self):
         pass
 
-class Weibull(ProbModel):
+class WeibullModel(ProbModel):
     def __init__(self,X_values, Y_values):
         self.X_values = X_values
         self.Y_values = Y_values
 
         self.minimize()
 
-    def log_likelihood(self,params, x, y, three_params:bool=True):
+    def log_likelihood(self,params, x, y, three_params:bool=False):
         """Weibull regression model"""
         shape = params[0]
         u = params[1]
@@ -62,7 +62,7 @@ class Weibull(ProbModel):
             ((1 / self.shape) * np.log(np.log(1 / (1 - cdf))))
         )
 
-class Normal(ProbModel):
+class NormalModel(ProbModel):
     def __init__(self, X_values, Y_values):
         self.X_values = X_values
         self.Y_values = Y_values
@@ -71,7 +71,7 @@ class Normal(ProbModel):
     def log_likelihood(self,params, y):
         return super().log_likelihood()
 
-class Lognormal(ProbModel):
+class LognormalModel(ProbModel):
     def __init__(self, X_values, Y_values):
         self.X_values = X_values
         self.Y_values = Y_values

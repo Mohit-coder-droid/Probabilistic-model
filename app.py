@@ -6,6 +6,7 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 from scipy.special import erf, erfinv
 
+st.set_page_config(layout = "wide")
 st.title("Probabilistic model fitting")
 
 # File uploader

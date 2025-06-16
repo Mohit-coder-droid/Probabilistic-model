@@ -1,4 +1,5 @@
-import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 def median_rank(n:int, i:int)->int:
     """Function to compute cumulative probability using Benard's median rank formula"""
@@ -12,3 +13,5 @@ def df_processor(df):
     df['Ln_Mpa'] = np.log(df['Mpa'])  # Log transformation
 
     return df, df_dict
+
+
