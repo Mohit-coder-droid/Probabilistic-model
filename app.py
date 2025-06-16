@@ -91,37 +91,40 @@ if uploaded_files is not None:
                 with row1_2:
                     line_fit_plot(lognormal, df_dict)
 
+                wb, lnm, nm = st.tabs(["Weibull", "LogNormal", "Normal"])
 
-                st.header("Weibull Model")
-                st.markdown("***")
-                row2_space1, row2_1, row2_space2, row2_2, row2_space3 = st.columns(
-                    (0.1, 1, 0.1, 1.6, 0.1)
-                )
-                with row2_1:
-                    weibull.st_description
+                # st.header("Weibull Model")
+                with wb:
+                    row2_space1, row2_1, row2_space2, row2_2, row2_space3 = st.columns(
+                        (0.1, 1, 0.1, 1.6, 0.1)
+                    )
+                    with row2_1:
+                        weibull.st_description
 
-                with row2_2:
-                    plot_different_cdf(weibull)
+                    with row2_2:
+                        plot_different_cdf(weibull)
 
-                st.header("LogNormal Model")
-                row3_space1, row3_1, row3_space2, row3_2, row3_space3 = st.columns(
-                    (0.1, 1, 0.1, 1.6, 0.1)
-                )
-                with row3_1:
-                    lognormal.st_description
+                # st.header("LogNormal Model")
+                with lnm:
+                    row3_space1, row3_1, row3_space2, row3_2, row3_space3 = st.columns(
+                        (0.1, 1, 0.1, 1.6, 0.1)
+                    )
+                    with row3_1:
+                        lognormal.st_description
 
-                with row3_2:
-                    plot_different_cdf(lognormal)
+                    with row3_2:
+                        plot_different_cdf(lognormal)
 
-                st.header("Normal Model")
-                row4_space1, row4_1, row4_space2, row4_2, row4_space3 = st.columns(
-                    (0.1, 1, 0.1, 1.6, 0.1)
-                )
-                with row4_1:
-                    normal.st_description
+                # st.header("Normal Model")
+                with nm:
+                    row4_space1, row4_1, row4_space2, row4_2, row4_space3 = st.columns(
+                        (0.1, 1, 0.1, 1.6, 0.1)
+                    )
+                    with row4_1:
+                        normal.st_description
 
-                with row4_2:
-                    plot_different_cdf(normal)
+                    with row4_2:
+                        plot_different_cdf(normal)
 
             else:
                 st.error("The uploaded file does not contain a 'Temperature' column.")
