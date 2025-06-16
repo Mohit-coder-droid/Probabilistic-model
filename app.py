@@ -1,10 +1,12 @@
 import streamlit as st
-import pandas as pd
-from scipy.stats import weibull_min, lognorm
-import numpy as np
-import scipy.stats as stats
-import matplotlib.pyplot as plt
-from scipy.special import erf, erfinv
+import probabilistic_models
+import utils
+# import pandas as pd
+# from scipy.stats import weibull_min, lognorm
+# import numpy as np
+# import scipy.stats as stats
+# import matplotlib.pyplot as plt
+# from scipy.special import erf, erfinv
 
 st.set_page_config(layout = "wide")
 st.title("Probabilistic model fitting")
@@ -126,6 +128,7 @@ if uploaded_files is not None:
 
             # Check if 'Temperature' column exists
             if "Temperature" in data.columns:
+                df = df_processor
                 preprocessing(data,uploaded_file.name)
             else:
                 st.error("The uploaded file does not contain a 'Temperature' column.")
