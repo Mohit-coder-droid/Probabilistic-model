@@ -51,7 +51,7 @@ def line_fit_plot(model,df_dict):
 
     ax.set_title("Probability Plot with Fitted Line", fontsize=14, fontweight="bold")
     ax.set_xlabel("ln(Data)", fontsize=12)
-    ax.set_ylabel("Standard Normal Quantile", fontsize=12)
+    ax.set_ylabel(model.transform_y_label, fontsize=12)
     ax.grid(True, linestyle='--', alpha=0.6)
     ax.legend(fontsize=10)
     # ax.tight_layout()
@@ -78,6 +78,7 @@ if uploaded_files is not None:
                 # st.write("It came here")
                 weibull = WeibullModel(X_values, Y_values)
                 lognormal = LognormalModel(X_values, Y_values)
+                normal = NormalModel(X_values, Y_values)
 
                 st.header("Compare Various Models")
                 row1_space1, row1_1, row1_space2, row1_2, row1_space3 = st.columns(
@@ -101,7 +102,6 @@ if uploaded_files is not None:
 
                 with row2_2:
                     plot_different_cdf(weibull)
-                st.write("It came here")
 
                 st.header("LogNormal Model")
                 row3_space1, row3_1, row3_space2, row3_2, row3_space3 = st.columns(
@@ -112,6 +112,16 @@ if uploaded_files is not None:
 
                 with row3_2:
                     plot_different_cdf(lognormal)
+
+                st.header("Normal Model")
+                row4_space1, row4_1, row4_space2, row4_2, row4_space3 = st.columns(
+                    (0.1, 1, 0.1, 1.6, 0.1)
+                )
+                with row4_1:
+                    normal.st_description
+
+                with row4_2:
+                    plot_different_cdf(normal)
 
             else:
                 st.error("The uploaded file does not contain a 'Temperature' column.")
