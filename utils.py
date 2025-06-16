@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 def median_rank(n:int, i:int)->int:
     """Function to compute cumulative probability using Benard's median rank formula"""
