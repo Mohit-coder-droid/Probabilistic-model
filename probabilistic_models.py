@@ -19,6 +19,48 @@ class ProbModel(ABC):
     def predict(self):
         pass
 
+    def power_st_description(self, cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values):
+        st.header("📋 Mathematical Formulation")
+    
+        # CDF Section
+        st.subheader("1. Cumulative Distribution Function (CDF)")
+        st.markdown("""
+        The CDF of this model is given by:
+        """)
+        st.latex(cdf)
+
+        # PDF Section
+        st.subheader("2. Probability Density Function (PDF)")
+        st.markdown("""
+        The PDF of this model can be expressed as:
+        """)
+        st.latex(pdf)
+
+        # Rearranged equation
+        st.subheader("3. Rearranged CDF")
+        st.markdown("""
+        Equation (1) can be rearranged as:
+        """)
+        st.latex(re_cdf)
+
+        # Arrhenius equation
+        st.subheader("4. Power Law Relationship")
+        st.markdown("""
+        Using Power law equation in Equation (3):
+        """)
+        st.latex(ar_cdf)
+
+        # Final fatigue life prediction model
+        st.subheader("5. Fatigue Life Prediction Model")
+        st.markdown("""
+        The complete fatigue life prediction model can be presented as:
+        """)
+        st.latex(fatigue_cdf)
+
+        st.subheader("Variable Values")
+        st.markdown("In the case of data given, values of the variables are")
+        st.markdown(variable_values)        
+
     def st_description(self, cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values):
         st.header("📋 Mathematical Formulation")
     
@@ -112,8 +154,8 @@ class WeibullModel(ProbModel):
         )
     
     @staticmethod
-    def estimate_params(data):
-        shape, loc, scale = stats.weibull_min.fit(data, floc=0)  # Lock location to 0 for typical Weibull fitting
+    def estimate_params(data, **kwargs):
+        shape, loc, scale = stats.weibull_min.fit(data, floc=0, **kwargs)
         return shape, scale
     
     def transform(self, data):
@@ -124,7 +166,7 @@ class WeibullModel(ProbModel):
         sigma_values = np.log(data)  # X-axis: ln(data)
         wb_sigma_values = np.log(-np.log(1 - cdf_values))  # Y-axis: ln(-ln(1 - p))
 
-        shape, scale = self.estimate_params(data)
+        shape, scale = self.estimate_params(data, f0=self.shape)
 
         # Generate fitted Weibull line
         sigma_line = np.linspace(min(data), max(data), 100)
@@ -156,6 +198,14 @@ class WeibullModel(ProbModel):
         \sigma_f = exp\left(\biggl\{U_t+\frac{W_t}{T}+Vln(\epsilon)\biggl\}+\frac{1}{m}ln\left(ln\left(\frac{1}{1-f_w}\right)\right)\right) \quad \text{...(5)}
         """
 
+        variable_values = f"""
+        | Variable | Values |
+        |----------|-------------|
+        | $U_t$ | {self.intercept:.6f} |
+        | $W_t$ | {self.slope:.6f} |
+        | $m$ | {self.shape:.6f} |
+        """
+
         if self.power_law:
             ar_cdf = r"""
             \sigma_f = exp\left(\biggl\{U_t+W_t ln(T)\biggl\}+\frac{1}{m}ln\left(ln\left(\frac{1}{1-f_w}\right)\right)\right) \quad \text{...(4)}
@@ -165,15 +215,9 @@ class WeibullModel(ProbModel):
             \sigma_f = exp\left(\biggl\{U_t++W_t ln(T)+Vln(\epsilon)\biggl\}+\frac{1}{m}ln\left(ln\left(\frac{1}{1-f_w}\right)\right)\right) \quad \text{...(5)}
             """
 
-        variable_values = f"""
-        | Variable | Values |
-        |----------|-------------|
-        | $U_t$ | {self.intercept:.6f} |
-        | $W_t$ | {self.slope:.6f} |
-        | $m$ | {self.shape:.6f} |
-        """
-
-        super().st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
+            super().power_st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
+        else:
+            super().st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
 
         return ''
 
@@ -216,7 +260,7 @@ class NormalModel(ProbModel):
         mu, sigma = np.mean(data), np.std(data, ddof=0)
         return mu, sigma
     
-    def transform(self,data):
+    def transform(self,data, temp):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
@@ -224,14 +268,12 @@ class NormalModel(ProbModel):
         sigma_values = data
         pred_sigma_values = stats.norm.ppf(cdf_values)  # Normal Quantile
 
-        mu, sigma = self.estimate_params(data)
+        inverse_temp = 11604.53 / (temp + 273.16)
+        mu = self.intercept + self.slope * inverse_temp
 
         # Generate fitted line
         sigma_line = np.linspace(min(data), max(data), 100)
-
-        pred_sigma_line = (sigma_line - mu) / sigma  # Standardized normal score
-        # Above line is just a simplification of the below line
-        # pred_sigma_line = stats.norm.ppf(stats.norm.cdf(sigma_line, loc=mu,scale=sigma))
+        pred_sigma_line = stats.norm.ppf(stats.norm.cdf(sigma_line, loc=mu,scale=self.sigma))
 
         self.transform_y_label = "Standard Normal Quantile"
 
@@ -318,26 +360,26 @@ class LognormalModel(ProbModel):
         mu, sigma = np.mean(log_data), np.std(log_data, ddof=0)
         return mu, sigma
     
-    def transform(self,data):
+    def transform(self,data, temp):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
         # X-axis: ln(data), Y-axis: inverse CDF of normal
         sigma_values = np.log(data)
-        pred_sigma_values = stats.norm.ppf(cdf_values)  # log(Normal quantile)
-
-        mu, sigma = self.estimate_params(data)
+        pred_sigma_values = stats.lognorm.ppf(cdf_values, s=self.sigma)  # log(Normal quantile)
 
         # Generate fitted line
-        sigma_line = np.log(np.linspace(min(data), max(data), 100))
+        sigma_line = np.linspace(min(data), max(data), 100)
+        inverse_temp = 11604.53 / (temp + 273.16)
+        median = np.exp(self.k + self.m * inverse_temp)
 
-        pred_sigma_line = (sigma_line - mu) / sigma  # Standardized normal score
-        # Above line is just a simplification of the below line
-        # pred_sigma_line = stats.norm.ppf(stats.norm.cdf(sigma_fit_log, loc=mu,scale=sigma))
+        if self.power_law:
+            median = np.exp(self.k + self.m * np.log(temp))
 
+        pred_sigma_line = stats.lognorm.ppf(stats.lognorm.cdf(sigma_line, s=self.sigma, scale=median), s=self.sigma)
         self.transform_y_label = "Standard Normal Quantile"
 
-        return sigma_values, pred_sigma_values, sigma_line, pred_sigma_line
+        return sigma_values, pred_sigma_values, np.log(sigma_line), pred_sigma_line
     
     @property
     def st_description(self):
@@ -361,15 +403,6 @@ class LognormalModel(ProbModel):
         \sigma_f = \exp \left( \left\{ K_t + L \ln(\epsilon) + \frac{M_t}{T} \right\} + \left\{ \sqrt{2} \, \sigma_{sl} \, \text{erf}^{-1}(2f_{ln} - 1) \right\} \right) \quad \text{...(5)}
         """
 
-        if self.power_law:
-            ar_cdf = r"""
-            \sigma_f = \exp \left( \left\{ K_t + M_t ln(T) \right\} + \left\{ \sqrt{2} \, \sigma_{sl} \, \text{erf}^{-1}(2f_{ln} - 1) \right\} \right) \quad \text{...(4)}
-            """
-            
-            fatigue_cdf = r"""
-            \sigma_f = \exp \left( \left\{ K_t + L \ln(\epsilon) + M_t ln(T) \right\} + \left\{ \sqrt{2} \, \sigma_{sl} \, \text{erf}^{-1}(2f_{ln} - 1) \right\} \right) \quad \text{...(5)}
-        """
-
         variable_values = f"""
         | Variable | Values |
         |----------|-------------|
@@ -378,7 +411,18 @@ class LognormalModel(ProbModel):
         | $\sigma{{sl}}$ | {self.sigma:.6f} |
         """
 
-        super().st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
+        if self.power_law:
+            ar_cdf = r"""
+            \sigma_f = \exp \left( \left\{ K_t + M_t ln(T) \right\} + \left\{ \sqrt{2} \, \sigma_{sl} \, \text{erf}^{-1}(2f_{ln} - 1) \right\} \right) \quad \text{...(4)}
+            """
+            
+            fatigue_cdf = r"""
+            \sigma_f = \exp \left( \left\{ K_t + L \ln(\epsilon) + M_t ln(T) \right\} + \left\{ \sqrt{2} \, \sigma_{sl} \, \text{erf}^{-1}(2f_{ln} - 1) \right\} \right) \quad \text{...(5)}
+            """
+
+            super().power_st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
+        else:
+            super().st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
 
         return ''
     
@@ -525,26 +569,24 @@ class LognormalModel3(ProbModel):
         mu, sigma = np.mean(log_data), np.std(log_data, ddof=0)
         return mu, sigma
     
-    def transform(self,data):
+    def transform(self,data, temp):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
         # X-axis: ln(data), Y-axis: inverse CDF of normal
         sigma_values = np.log(data)
-        pred_sigma_values = stats.norm.ppf(cdf_values)  # log(Normal quantile)
+        pred_sigma_values = stats.lognorm.ppf(cdf_values, s=self.sigma)  # log(Normal quantile)
 
-        mu, sigma = self.estimate_params(data)
+        inverse_temp = 11604.53 / (temp + 273.16)
+        median = np.exp(self.k + self.m * inverse_temp)
 
         # Generate fitted line
-        sigma_line = np.log(np.linspace(min(data), max(data), 100))
-
-        pred_sigma_line = (sigma_line - mu) / sigma  # Standardized normal score
-        # Above line is just a simplification of the below line
-        # pred_sigma_line = stats.norm.ppf(stats.norm.cdf(sigma_fit_log, loc=mu,scale=sigma))
+        sigma_line = np.linspace(min(data), max(data), 100) - self.gamma
+        pred_sigma_line = stats.lognorm.ppf(stats.lognorm.cdf(sigma_line, scale=median, s=self.sigma),s=self.sigma)
 
         self.transform_y_label = "Standard Normal Quantile"
 
-        return sigma_values, pred_sigma_values, sigma_line, pred_sigma_line
+        return sigma_values, pred_sigma_values, np.log(sigma_line), pred_sigma_line
     
     @property
     def st_description(self):
