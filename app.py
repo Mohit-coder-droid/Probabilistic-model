@@ -2,11 +2,8 @@ import streamlit as st
 from probabilistic_models import *
 from utils import *
 import pandas as pd
-# from scipy.stats import weibull_min, lognorm
 import numpy as np
-# import scipy.stats as stats
 import matplotlib.pyplot as plt
-# from scipy.special import erf, erfinv
 
 st.set_page_config(layout = "wide")
 st.title("Probabilistic model fitting")
@@ -21,14 +18,14 @@ def plot_different_cdf(model,cdf=[0.5,0.9,0.1,0.99,0.01]):
     for (name,df) in selected_files.items():
         ax.scatter(df["Temperature"], df["Mpa"], edgecolors='black', alpha=0.7, s=30, label=f"{name}")
 
-    # if st.checkbox(f"✔️ Show Different CDF values", value=True, key=f"{model.name}_cdf_check"):
-    for i in range(len(cdf)):
-        ys_predicted_cdf = model.predict(cdf[i],temperature_values)
-        ax.plot(temperature_values, ys_predicted_cdf, linestyle="-", linewidth=1, label=f"Predicted YS (CDF={cdf[i]})")
+    if st.checkbox(f"✔️ Show Different CDF values", value=True, key=f"{model.name}_cdf_check"):
+        for i in range(len(cdf)):
+            ys_predicted_cdf = model.predict(cdf[i],temperature_values)
+            ax.plot(temperature_values, ys_predicted_cdf, linestyle="-", linewidth=1, label=f"Predicted YS (CDF={cdf[i]})")
 
-    # var_cdf = st.slider("Select CDF value", min_value=0.01, max_value=0.99, value=0.5, step=0.01, key=f"{model.name}_slider")
-    # ys_predicted_cdf = model.predict(var_cdf, temperature_values)
-    # ax.plot(temperature_values, ys_predicted_cdf, linestyle="-", linewidth=2, label=f"Predicted YS (Selected CDF={var_cdf})")
+    var_cdf = st.slider("Select CDF value", min_value=0.01, max_value=0.99, value=0.5, step=0.01, key=f"{model.name}_slider")
+    ys_predicted_cdf = model.predict(var_cdf, temperature_values)
+    ax.plot(temperature_values, ys_predicted_cdf, linestyle="-", linewidth=2, label=f"Predicted YS (Selected CDF={var_cdf})")
 
     ax.set_xlabel("Temperature (°C)", fontsize=12, fontweight="bold")
     ax.set_ylabel("Yield Stress (YS)", fontsize=12, fontweight="bold")
@@ -37,7 +34,6 @@ def plot_different_cdf(model,cdf=[0.5,0.9,0.1,0.99,0.01]):
     st.pyplot(fig)    
     
 def line_fit_plot(model,df_dict):
-    # st.markdown(f"<h2 style='text-align: center;'>{model.name}</h2>", unsafe_allow_html=True)
     fig,ax = plt.subplots(figsize=(10, 6))
 
     for temp in df_dict.keys():
@@ -57,7 +53,6 @@ def line_fit_plot(model,df_dict):
     ax.set_ylabel(model.transform_y_label, fontsize=12)
     ax.grid(True, linestyle='--', alpha=0.6)
     ax.legend(fontsize=10)
-    # ax.tight_layout()
     st.pyplot(fig)
 
 if uploaded_files is not None:
@@ -90,17 +85,9 @@ if uploaded_files is not None:
                 expo = Exponential(X_values, Y_values)
                 gamma = Gamma(X_values, Y_values)
 
-                # models = [weibull, lognormal, weibull_p]
                 models = [weibull, lognormal, weibull_p, lognormal_p, normal, weibull3, lognormal3, gumbell, expo, gamma]
 
-                # st.header("Compare Various Models")
-                # row_space = st.columns(
-                #     [val for _ in models for val in (0.1, 1)]
-                # )
-
-                # for i in range(int(len(row_space)/2)):
-                #     with row_space[i*2]:
-                #         line_fit_plot(models[i], df_dict)
+                st.header("Various Models")
 
                 tab_models = st.tabs([m.tab_name for m in models])
 
@@ -131,35 +118,6 @@ if uploaded_files is not None:
                         with row_space1[1]:
                             with st.container(border=True):
                                 models[i].st_description
-                # with wb:
-                #     row2_space1, row2_1, row2_space2, row2_2, row2_space3 = st.columns(
-                #         (0.1, 1, 0.1, 1.6, 0.1)
-                #     )
-                #     with row2_1:
-                #         weibull.st_description
-
-                #     with row2_2:
-                #         plot_different_cdf(weibull)
-
-                # with lnm:
-                #     row3_space1, row3_1, row3_space2, row3_2, row3_space3 = st.columns(
-                #         (0.1, 1, 0.1, 1.6, 0.1)
-                #     )
-                #     with row3_1:
-                #         lognormal.st_description
-
-                #     with row3_2:
-                #         plot_different_cdf(lognormal)
-
-                # with nm:
-                #     row4_space1, row4_1, row4_space2, row4_2, row4_space3 = st.columns(
-                #         (0.1, 1, 0.1, 1.6, 0.1)
-                #     )
-                #     with row4_1:
-                #         normal.st_description
-
-                #     with row4_2:
-                #         plot_different_cdf(normal)
 
             else:
                 st.error("The uploaded file does not contain a 'Temperature' column.")

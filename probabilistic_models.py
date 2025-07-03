@@ -59,8 +59,7 @@ class ProbModel(ABC):
 
         st.subheader("Variable Values")
         st.markdown("In the case of data given, values of the variables are")
-        st.markdown(variable_values)
-        
+        st.markdown(variable_values)        
 
 class WeibullModel(ProbModel):
     def __init__(self,X_values, Y_values, power_law=False):
