@@ -2,7 +2,8 @@ import numpy as np
 import scipy.stats as stats
 from scipy.special import erfinv
 from abc import ABC, abstractmethod
-from scipy import optimize
+from scipy.optimize import differential_evolution
+from scipy import optimize   # to be deleted later on
 from utils import median_rank
 import streamlit as st
 
@@ -11,9 +12,14 @@ class ProbModel(ABC):
     def log_likelihood(self):
         pass
 
-    @abstractmethod
-    def minimize(self):
-        pass
+    def minimize(self, bounds, args)->np.ndarray:
+        result_regression = differential_evolution(
+                                self.log_likelihood,
+                                args=args,
+                                bounds=bounds,
+                            )
+
+        return result_regression.x
 
     @abstractmethod
     def predict(self):
@@ -104,61 +110,106 @@ class ProbModel(ABC):
         st.markdown(variable_values)        
 
 class WeibullModel(ProbModel):
-    def __init__(self,X_values, Y_values, power_law=False):
+    def __init__(self,X_values:np.ndarray, Y_values:np.ndarray,X_values2:np.ndarray=np.array([]), power_law:bool=False)->None:
+        """Intializes Weibull Probabilistic Model
+
+        Args:
+            X_values (np.ndarray): Temperature Values
+            Y_values (np.ndarray): Sigma Values
+            power_law (bool, optional): Whether to use power law or not. Defaults to False, which means that we will use Arrhenius equation instead of power law. 
+        """
         self.X_values = X_values
+        self.X_values2 = X_values2
         self.Y_values = Y_values
         self.name = "Weibull Model"
         self.tab_name = "Weibull"
         if power_law:
             self.name = "Weibull Model With Power Law"
             self.tab_name = "Weibull (Power)"
-        
-        self.power_law = power_law
-        self.minimize()
 
-    def log_likelihood(self,params, temp, sigma_values):
-        """Weibull regression model"""
+        # Figure out the parameters
+        self.two_var = False
+        if len(X_values2):
+            # self.init_params = [2.0,-1, np.log(np.mean(self.Y_values)), -3.0]
+            self.bounds = [(1e-6, 20), (-20, 20),(-20, 20), (-20, 20)]
+            self.name = "Weibull Model With Two variables"
+            self.two_var = True
+
+            self.shape, self.intercept, self.slope, self.v = self.minimize(self.bounds, args=(self.X_values, self.Y_values, self.X_values2))
+        else:
+            # init_params = [2.0, np.log(np.mean(self.Y_values)), 0.0]
+            bounds = [(1e-6, 30), (-10, 10), (-10, 10)]
+
+            self.power_law = power_law
+            self.shape, self.intercept, self.slope = self.minimize( bounds, args=(self.X_values, self.Y_values))
+
+    def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain:np.ndarray=np.array([])):
+        """Log likelihood 
+
+        Args:
+            params (list): parameters that are to be determined
+            temp (np.ndarray)
+            sigma_values (np.ndarray)
+            strain(np.ndarray)
+
+        Returns:
+            Gives a negative sum of log likelihood for given data
+        """
         shape = params[0]
         u = params[1]
         w = params[2]
 
         if shape <= 0:
             return np.inf
-        scale = np.exp(u + w * temp)
+        
+        if self.two_var:
+            v = params[3]
+            scale = np.exp(u + w * temp + v * strain)
+        else:
+            scale = np.exp(u + w * temp)
 
         return -np.sum(stats.weibull_min.logpdf(sigma_values, c=shape, scale=scale))
-    
-    def minimize(self):
-        init_params = [2.0, np.log(np.mean(self.Y_values)), 0.0]
-        bounds = [(1e-6, None), (None, None), (None, None)]
 
-        result_regression = optimize.minimize(
-            self.log_likelihood,
-            init_params,
-            args=(self.X_values, self.Y_values),
-            bounds=bounds,
-            method='L-BFGS-B'
-        )
+    def predict(self,cdf:float, temperature_values:np.ndarray)->np.ndarray:
+        """To predict sigma values 
 
-        self.shape, self.intercept, self.slope = result_regression.x
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
 
-    def predict(self,cdf, temperature_values):
+        Returns:
+            Predicted sigma values according to the trained model
+        """
         if self.power_law:
             return np.exp(
                 (self.intercept + (self.slope * np.log(temperature_values))) +
                 ((1 / self.shape) * np.log(np.log(1 / (1 - cdf))))
             )
+        
+        elif self.two_var:
+            return np.exp(
+            (self.intercept + (self.slope * 11604.53 / (temperature_values + 273.16)) + self.v * np.log(strain_values)) +
+            ((1 / self.shape) * np.log(np.log(1 / (1 - cdf))))
+        ) / 1000000
+
         return np.exp(
             (self.intercept + (self.slope * 11604.53 / (temperature_values + 273.16))) +
             ((1 / self.shape) * np.log(np.log(1 / (1 - cdf))))
         )
     
+    def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        shape, intercept, slope, v = params
+        return np.exp(
+            (intercept + (slope * 11604.53 / (temperature_values + 273.16)) + v * np.log(strain_values)) +
+            ((1 / shape) * np.log(np.log(1 / (1 - cdf))))
+        ) / 1000000
+    
     @staticmethod
-    def estimate_params(data, **kwargs):
+    def estimate_params(data:np.ndarray, **kwargs):
         shape, loc, scale = stats.weibull_min.fit(data, floc=0, **kwargs)
         return shape, scale
     
-    def transform(self, data):
+    def transform(self, data:np.ndarray):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
@@ -178,6 +229,7 @@ class WeibullModel(ProbModel):
     
     @property
     def st_description(self):
+        """Description of this model to be used in the streamlit website"""
         cdf = r"""
         f_w = 1 - exp\left(-\left(\frac{\sigma_f}{\sigma_m}\right)^m\right) \quad \text{...(1)}
         """
@@ -222,38 +274,51 @@ class WeibullModel(ProbModel):
         return ''
 
 class NormalModel(ProbModel):
-    def __init__(self, X_values, Y_values):
+    def __init__(self, X_values, Y_values, X_values2:np.ndarray=np.array([])):
         self.X_values = X_values
+        self.X_values2 = X_values2
         self.Y_values = Y_values
         self.name = "Normal Model"
         self.tab_name = "Normal"
-        self.minimize()
-    
-    def log_likelihood(self, params,temp, sigma_values):
-        p,r, sigma = params
+
+        self.two_var = False
+        if len(X_values2):
+            self.name = "Normal Model With Two variables"
+            self.two_var = True
+            self.bounds = [(1e-6, 100000),(-100000, 100000), (-100000, 100000), (-100000, 100000)]
+
+            self.sigma, self.intercept, self.slope, self.q = self.minimize(self.bounds, args=(self.X_values, self.Y_values, self.X_values2))
+        else:
+            self.bounds = [(1e-6, 30),(-300, 300), (-20, 20), (-300, 300)]
+            self.sigma, self.intercept, self.slope,_ = self.minimize(self.bounds, args=(self.X_values, self.Y_values))
+
+    def log_likelihood(self, params,temp, sigma_values, strain:np.ndarray=np.array([])):
+        sigma = params[0]
+        k = params[1]
+        m = params[2]
+        
         if sigma <= 0:
             return np.inf  # Avoid invalid sigma
         
-        mu = p + r * temp
+        if self.two_var:
+            l = params[3]
+            mu = k + m * temp + l*strain
+        else:
+            mu = k + m * temp
         log_likelihood = np.sum(stats.norm.logpdf(sigma_values, loc=mu, scale=sigma))
+
         return -log_likelihood
 
-    def minimize(self):
-        init_params = [10, 1,1]
-        bounds = [(None, None),(None, None), (1e-10, None)]  # mu unbounded, sigma > 0
-        result_lognormal = optimize.minimize(
-            self.log_likelihood,
-            init_params,
-            args=(self.X_values, self.Y_values,),
-            method='L-BFGS-B',
-            bounds=bounds
-        )
-
-        self.intercept, self.slope, self.sigma = result_lognormal.x
-
-    def predict(self,cdf, temperature_values):
+    def predict(self,cdf, temperature_values, strain_values:np.ndarray=np.array([])):
         z = np.sqrt(2) * self.sigma * erfinv(2 * cdf - 1)
+        if self.two_var:
+            return self.intercept + (self.slope * 11604.53) / (temperature_values + 273.16) + self.q * np.log(strain_values) + z
         return self.intercept + (self.slope * 11604.53) / (temperature_values + 273.16) + z
+    
+    def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        sigma, k, m, l = params
+        z = np.sqrt(2) * sigma * erfinv(2 * cdf - 1)
+        return np.exp(k + (m * 11604.53) / (temperature_values + 273.16) + l * np.log(strain_values) + z) / 1000000
     
     @staticmethod
     def estimate_params(data):
@@ -314,45 +379,59 @@ class NormalModel(ProbModel):
         return ''
 
 class LognormalModel(ProbModel):
-    def __init__(self, X_values, Y_values, power_law=False):
+    def __init__(self,X_values:np.ndarray, Y_values:np.ndarray,X_values2:np.ndarray=np.array([]), power_law:bool=False)->None:
         self.X_values = X_values
+        self.X_values2 = X_values2
         self.Y_values = Y_values
         self.name = "LogNormal Model"
         self.tab_name = "LogNormal"
         if power_law:
             self.name = "LogNormal Model With Power Law"
             self.tab_name = "LogNormal (Power)"
-        self.power_law = power_law
 
-        self.minimize()
+        self.two_var = False
+        if len(X_values2):
+            self.name = "LogNormal Model With Two variables"
+            self.two_var = True
 
-    def log_likelihood(self, params,temp, sigma_values):
-        k,m, sigma = params
+            self.bounds = [(-20, 20),(-20, 20),(1e-6, 20), (-20, 20)]
+            self.k, self.m, self.sigma, self.l = self.minimize(self.bounds, args=(self.X_values, self.Y_values, self.X_values2))
+        else:
+            self.power_law = power_law
+
+            self.bounds = [(-20, 20),(-20, 20), (1e-10, 20)]
+            self.k, self.m, self.sigma = self.minimize(self.bounds, args=(self.X_values, self.Y_values))
+
+
+    def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain:np.ndarray=np.array([])):
+        k = params[0]
+        m = params[1]
+        sigma = params[2]
         if sigma <= 0:
             return np.inf  # Avoid invalid sigma
         
-        mu = k + m * temp
+        if self.two_var:
+            l = params[3]
+            mu = k + m * temp + l*strain
+        else:
+            mu = k + m * temp
+
         log_likelihood = np.sum(stats.norm.logpdf(np.log(sigma_values), loc=mu, scale=sigma) - np.log(sigma_values))
         return -log_likelihood  
-    
-    def minimize(self):
-        init_params = [10, 1,1]
-        bounds = [(None, None),(None, None), (1e-10, None)]  # mu unbounded, sigma > 0
-        result_lognormal = optimize.minimize(
-            self.log_likelihood,
-            init_params,
-            args=(self.X_values, self.Y_values,),
-            method='L-BFGS-B',
-            bounds=bounds
-        )
 
-        self.k, self.m, self.sigma = result_lognormal.x
-
-    def predict(self,cdf, temperature_values):
+    def predict(self,cdf, temperature_values, strain_values = np.array([])):
         z = np.sqrt(2) * self.sigma * erfinv(2 * cdf - 1)
         if self.power_law:
             return np.exp(self.k + self.m * np.log(temperature_values) + z)
+
+        elif self.two_var:
+            return np.exp(self.k +  (self.m * 11604.53) / (temperature_values + 273.16) + self.l * np.log(strain_values) + z) / 1000000
         return np.exp(self.k + (self.m * 11604.53) / (temperature_values + 273.16) + z)
+    
+    def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        k, m, sigma, l = params
+        z = np.sqrt(2) * sigma * erfinv(2 * cdf - 1)
+        return np.exp(k +  (m * 11604.53) / (temperature_values + 273.16) + l * np.log(strain_values) + z) / 1000000
     
     @staticmethod
     def estimate_params(data):
@@ -622,16 +701,30 @@ class LognormalModel3(ProbModel):
         super().st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
 
         return ''
-    
+
 class Gumbell(ProbModel):   
-    def __init__(self,X_values, Y_values):
+    def __init__(self,X_values, Y_values,X_values2:np.ndarray=np.array([])):
         self.X_values = X_values
+        self.X_values2 = X_values2
         self.Y_values = Y_values
         self.name = "Gumbell Model"
         self.tab_name = "Gumbell"
-        self.minimize()
 
-    def log_likelihood(self,params, temp, sigma_values):
+        self.two_var = False
+        if len(X_values2):
+            # self.init_params = [2.0,-1, np.log(np.mean(self.Y_values)), -3.0]
+            self.bounds = [(-100000, 100000),(-100000, 100000),(1e-6, 100000), (-100000, 100000)]
+            self.name = "Gumbell Model With Two variables"
+            self.two_var = True
+
+            self.intercept, self.slope,self.scale, self.v = self.minimize(self.bounds, args=(self.X_values, self.Y_values, self.X_values2))
+        else:
+            # init_params = [2.0, np.log(np.mean(self.Y_values)), 0.0]
+            bounds = [(-20, 400), (-20, 20), (1e-6, 30)]
+
+            self.intercept, self.slope,self.scale = self.minimize( bounds, args=(self.X_values, self.Y_values))
+
+    def log_likelihood(self,params, temp, sigma_values, strain_values=np.array([])):
         """Gumbell Log likelihood"""
         u = params[0]           # Intercept
         w = params[1]        # Slope
@@ -640,29 +733,27 @@ class Gumbell(ProbModel):
         if scale <= 0:
             return np.inf
         
-        loc = u + w * temp
+        if self.two_var:
+            v = params[3]
+            loc = u + w * temp + v * strain_values
+        else:
+            loc = u + w * temp
         z = (sigma_values - loc) / scale
         z = np.clip(z, -700, 700)  # -exp(-z) overflows around -745
         logpdf = -z - np.exp(-z) - np.log(scale)
         return -np.sum(logpdf)
-    
-    def minimize(self):
-        init_params = [np.mean(self.Y_values), 0.0, np.std(self.Y_values)]
-        bounds = [(None, None), (None, None), (1e-6, None)]
 
-        result_regression = optimize.minimize(
-            self.log_likelihood,
-            init_params,
-            args=(self.X_values, self.Y_values),
-            bounds=bounds,
-            method="L-BFGS-B"
-        )
-
-        self.intercept, self.slope,self.scale = result_regression.x
-
-    def predict(self,cdf, temperature_values):
+    def predict(self,cdf, temperature_values,strain_values=np.array([])):
         inv_temp = 11604.53 / (temperature_values + 273.16)
+        if self.two_var:
+            return (self.intercept + self.slope * inv_temp + self.v*np.log(strain_values) - self.scale * np.log(-np.log(cdf))) / 1000000
+        
         return self.intercept + self.slope * inv_temp - self.scale * np.log(-np.log(cdf))
+    
+    def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        u,w,scale,v = params
+        inv_temp = 11604.53 / (temperature_values + 273.16)
+        return (u + w * inv_temp + v*np.log(strain_values) - scale * np.log(-np.log(cdf)))/1000000
     
     @staticmethod
     def estimate_params(data, **kwargs):
@@ -725,43 +816,47 @@ class Gumbell(ProbModel):
         return ''
 
 class Exponential(ProbModel):
-    def __init__(self,X_values, Y_values):
+    def __init__(self,X_values, Y_values, X_values2:np.ndarray=np.array([])):
         self.X_values = X_values
+        self.X_values2 = X_values2
         self.Y_values = Y_values
         self.name = "Exponential Model"
         self.tab_name = "Exponential"
-        self.minimize()
 
-    def log_likelihood(self,params, temp, sigma_values):
+        self.two_var = False
+        if len(X_values2):
+            self.bounds = [(-20, 20), (-20, 20), (-20, 20)]
+            self.name = "Exponential Model with two variables"
+            self.two_var = True 
+
+            self.intercept, self.slope, self.v = self.minimize(self.bounds, args=(self.X_values, self.Y_values, self.X_values2))
+        else:
+            bounds = [(-10, 10), (-10, 10)]
+            self.intercept, self.slope = self.minimize(bounds, args=(self.X_values, self.Y_values))
+
+    def log_likelihood(self,params, temp, sigma_values, strain_values = np.array([])):
         """Exponential Log likelihood"""
         u = params[0]
         w = params[1]
-        scale = np.exp(u + w * temp)
-        
-        if np.any(scale <= 0):
-            return np.inf
-        
+
+        if self.two_var:
+            v = params[2]
+            scale = np.exp(u + w * temp + v * strain_values)
+        else:
+            scale = np.exp(u + w * temp)
+                
         return -np.sum(stats.expon.logpdf(sigma_values, scale=scale))
-    
-    def minimize(self):
-        init_params = [np.log(np.mean(self.Y_values)), 0.0]
-        bounds = [(None, None), (None, None)]
-
-        result_regression = optimize.minimize(
-            self.log_likelihood,
-            init_params,
-            args=(self.X_values, self.Y_values),
-            bounds=bounds,
-            method='L-BFGS-B'
-        )
-
-        self.intercept, self.slope = result_regression.x
-        self.scale = np.exp(self.intercept + self.slope * self.X_values)
 
     def predict(self,cdf, temperature_values):
         inv_temp_range = 11604.53 / (temperature_values + 273.16)
         lambda_vals = np.exp(self.intercept + self.slope * inv_temp_range)
         return -lambda_vals * np.log(1 - cdf)
+    
+    def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        u,w,v  = params
+        inv_temp_range = 11604.53 / (temperature_values + 273.16)
+        lambda_vals = np.exp(u + w * inv_temp_range + v * np.log(strain_values))
+        return -lambda_vals * np.log(1 - cdf) / 1000000
     
     @staticmethod
     def estimate_params(data, **kwargs):
@@ -823,44 +918,51 @@ class Exponential(ProbModel):
         return ''
 
 class Gamma(ProbModel):
-    def __init__(self,X_values, Y_values):
+    def __init__(self,X_values, Y_values,X_values2:np.ndarray=np.array([])):
         self.X_values = X_values
+        self.X_values2 = X_values2
         self.Y_values = Y_values
         self.name = "Gamma Model"
         self.tab_name = "Gamma"
-        self.minimize()
 
-    def log_likelihood(self,params, temp, sigma_values):
+        self.two_var = False
+        if len(X_values2):
+            self.two_var = True
+            self.bounds = [(1e-6, 20), (-20, 20),(-20, 20), (-20, 20)]
+            self.shape,self.intercept, self.slope, self.v = self.minimize(self.bounds, args=(self.X_values, self.Y_values, self.X_values2))
+
+        else:
+            self.bounds = [(1e-6, 1000), (-10, 10),(-10, 10)]
+            self.shape,self.intercept, self.slope= self.minimize(self.bounds, args=(self.X_values, self.Y_values))
+
+    def log_likelihood(self,params, temp, sigma_values, strain_values:np.ndarray=np.array([])):
         """Exponential Log likelihood"""
-        shape = params[0]
         u = params[1]
         w = params[2]
-        scale = np.exp(u + w * temp)
-        
-        if shape <= 0:
-            return np.inf
+        shape = params[0]
+        if self.two_var:
+            v = params[3]
+            scale = np.exp(u + w * temp + v * strain_values)
+        else:
+            scale = np.exp(u + w * temp)
         
         return -np.sum(stats.gamma.logpdf(sigma_values, a=shape, scale=scale))
-    
-    def minimize(self):
-        init_params = [2.0, np.log(np.mean(self.Y_values)), 0.0]
-        bounds = [(1e-6, None), (None, None), (None, None)]
 
-        result_regression = optimize.minimize(
-            self.log_likelihood,
-            init_params,
-            args=(self.X_values,self.Y_values),
-            bounds=bounds,
-            method='L-BFGS-B'
-        )
-
-        self.shape,self.intercept, self.slope = result_regression.x
-        self.scale = np.exp(self.intercept + self.slope * self.X_values)
-
-    def predict(self,cdf, temperature_values):
+    def predict(self,cdf, temperature_values, strain_values:np.ndarray=np.array([])):
         inv_temp_range = 11604.53 / (temperature_values + 273.16)
+
+        if self.two_var:
+            scale_range = np.exp(self.intercept + self.slope * inv_temp_range + self.v * np.log(strain_values))
+            return stats.gamma.ppf(cdf, a=shape, scale=scale_range) / 1000000
+
         scale_range = np.exp(self.intercept + self.slope * inv_temp_range)
         return stats.gamma.ppf(cdf, a=self.shape, scale=scale_range)
+    
+    def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        shape,u,w,v  = params
+        inv_temp_range = 11604.53 / (temperature_values + 273.16)
+        scale_range = np.exp(u + w * inv_temp_range + v * np.log(strain_values))
+        return stats.gamma.ppf(cdf, a=shape, scale=scale_range) / 1000000
     
     @staticmethod
     def estimate_params(data, **kwargs):
