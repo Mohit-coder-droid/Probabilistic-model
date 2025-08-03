@@ -1,15 +1,40 @@
 import streamlit as st
-from probabilistic_models import *
-from utils import *
+from probabilistic_models import * # Assuming these are defined
+from utils import * # Assuming these are defined
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-st.set_page_config(layout = "wide")
-st.title("Probabilistic model fitting")
+# --- Page Configuration ---
+st.set_page_config(layout="wide", page_title="Probabilistic Model Fitter")
 
-# File uploader
-uploaded_files = st.file_uploader("Upload your .xlsx file", type=["xlsx"], accept_multiple_files=True)
+# --- Main App Interface ---
+st.title("Probabilistic Model Fitting ⚙️")
+st.markdown("Upload your data, select the analysis type, map your data columns, and explore various probabilistic models.")
+
+# --- Sidebar for All User Controls ---
+with st.sidebar:
+    st.header("Controls")
+
+    global selected_files
+    selected_files = {}
+    
+    # 1. File Uploader
+    uploaded_files = st.file_uploader(
+        "Upload .xlsx or .csv files", 
+        type=["xlsx", "csv"], 
+        accept_multiple_files=True
+    )
+
+    if uploaded_files:
+        for uploaded_file in uploaded_files:
+            if st.checkbox(f"✔️ {uploaded_file.name}"):
+                selected_files[f"{uploaded_file.name}"] = pd.read_excel(uploaded_file)
+
+# --- Main Panel Logic ---
+if not uploaded_files:
+    st.info("👈 Please upload one or more data files to get started.")
+    st.stop()
 
 def plot_different_cdf(model,cdf=[0.5,0.9,0.1,0.99,0.01]):
     temperature_values = np.linspace(10, 600, 100)
@@ -76,120 +101,133 @@ def plot_different_cdf_two_var(predict, params,temperature,data,cdf=[0.5,0.9,0.1
     ax.legend()
     st.pyplot(fig)
 
-if uploaded_files is not None:
-    try:
-        global selected_files
-        st.subheader("Select files to process:")
-        selected_files = {}
 
-        for uploaded_file in uploaded_files:
-            if st.checkbox(f"✔️ {uploaded_file.name}"):
-                selected_files[f"{uploaded_file.name}"] = pd.read_excel(uploaded_file)
+# --- Process Files and Get User Input ---
+try:
+    # Read and combine all uploaded files into a single DataFrame
+    all_files = [pd.read_excel(file) if file.name.endswith('xlsx') else pd.read_csv(file) for file in uploaded_files]
+    data = pd.concat(all_files, ignore_index=True)
+    
+    # Get available column names for dropdowns
+    options = data.columns.tolist()
 
-        if (len(selected_files)):
-            data = pd.concat(list(selected_files.values()), ignore_index=True)
+    with st.sidebar:
+        # 2. Data Preview
+        with st.expander("Preview Uploaded Data"):
+            st.dataframe(data.head())
 
-            # Check if 'Temperature' column exists
-            if "Temperature" in data.columns and "Mpa" in data.columns:
-                df,df_dict = df_processor(data)
-                X_values = df['Inverse_Temp'].values
-                Y_values = df['Mpa'].values
+        # 3. Select Analysis Type
+        analysis_type = st.radio(
+            "Select Analysis Type:",
+            ("Yield Stress vs. Temperature", "Fatigue Life Analysis"),
+            help="Choose the type of model you want to fit based on your data."
+        )
+        
+        # --- Column Selectors ---
+        st.header("Column Mapping")
 
-                # Fit various models
-                weibull = WeibullModel(X_values, Y_values)
-                lognormal = LognormalModel(X_values, Y_values)
-                weibull_p = WeibullModel(np.log(df['Temperature'].values), Y_values, power_law=True)
-                lognormal_p = LognormalModel(np.log(df['Temperature'].values), Y_values, power_law=True)
-                normal = NormalModel(X_values, Y_values)
-                weibull3 = WeibullModel3(X_values, Y_values)
-                lognormal3 = LognormalModel3(X_values, Y_values)
-                gumbell = Gumbell(X_values, Y_values)
-                expo = Exponential(X_values, Y_values)
-                gamma = Gamma(X_values, Y_values)
+        # --- CASE 1: Yield Stress vs. Temperature ---
+        if analysis_type == "Yield Stress vs. Temperature":
+            x_col = st.selectbox("Select the Temperature column (X-axis)", options, index=options.index('Temperature') if 'Temperature' in options else 0)
+            y_col = st.selectbox("Select the Yield Stress column (Y-axis)", options, index=options.index('Mpa') if 'Mpa' in options else 1)
+            
+            run_button = st.button("Run Analysis", use_container_width=True, type="primary")
 
-                models = [weibull, lognormal, weibull_p, lognormal_p, normal, weibull3, lognormal3, gumbell, expo, gamma]
+        # --- CASE 2: Fatigue Life Analysis ---
+        elif analysis_type == "Fatigue Life Analysis":
+            temp_col = st.selectbox("Select the Temperature column", options, index=options.index('Temperature') if 'Temperature' in options else 0)
+            strain_col = st.selectbox("Select the Strain Amplitude column", options, index=options.index('Strain amplitude') if 'Strain amplitude' in options else 1)
+            cycles_col = st.selectbox("Select the Failure Cycles column", options, index=options.index('Failure cycle') if 'Failure cycle' in options else 2)
 
-                st.header("Various Models")
+            run_button = st.button("Run Fatigue Analysis", use_container_width=True, type="primary")
 
-                tab_models = st.tabs([m.tab_name for m in models])
+# --- Run Analysis and Display Results ---
+    if run_button:
+        st.header("📈 Model Results")
+        
+        # --- EXECUTE CASE 1 ---
+        if analysis_type == "Yield Stress vs. Temperature":
+            # Process data using selected columns
+            df, df_dict = df_processor(data, temp_col=x_col, stress_col=y_col)
+            X_values = df['Inverse_Temp'].values
+            Y_values = df['Mpa'].values
 
-                for i in range(len(tab_models)):
-                    with tab_models[i]:
-                        st.subheader(models[i].name)
-                        plots = st.tabs(["Probability Line Fit Plot", "Yield Stress vs Temperature"])
-
-                        with plots[0]:
-                            row_space1 = st.columns(
-                               (0.1, 0.7, 0.1)
-                            )
-                            with row_space1[1]:
-                                line_fit_plot(models[i], df_dict)
-
-                        with plots[1]:
-                            row_space1 = st.columns(
-                               (0.1, 0.7, 0.1)
-                            )
-                            with row_space1[1]:
-                                plot_different_cdf(models[i])
-
-                        st.markdown("<div style='margin-top: 80px;'></div>", unsafe_allow_html=True)
-
+            # Fit various models (your predefined logic)
+            weibull = WeibullModel(X_values, Y_values)
+            lognormal = LognormalModel(X_values, Y_values)
+            weibull_p = WeibullModel(np.log(df[x_col].values), Y_values, power_law=True)
+            lognormal_p = LognormalModel(np.log(df[x_col].values), Y_values, power_law=True)
+            normal = NormalModel(X_values, Y_values)
+            weibull3 = WeibullModel3(X_values, Y_values)
+            lognormal3 = LognormalModel3(X_values, Y_values)
+            gumbell = Gumbell(X_values, Y_values)
+            expo = Exponential(X_values, Y_values)
+            gamma = Gamma(X_values, Y_values)
+            models = [weibull, lognormal, weibull_p, lognormal_p, normal, weibull3, lognormal3, gumbell, expo, gamma]
+            
+            # Display results in tabs (your predefined logic)
+            tab_models = st.tabs([m.tab_name for m in models])
+            for i, tab in enumerate(tab_models):
+                with tab:
+                    st.subheader(models[i].name)
+                    plots = st.tabs(["Probability Line Fit Plot", "Yield Stress vs Temperature"])
+                    with plots[0]:
                         row_space1 = st.columns(
-                            (0.1, 0.7, 0.1)
-                        )
+                               (0.1, 0.7, 0.1)
+                            )
                         with row_space1[1]:
-                            with st.container(border=True):
-                                models[i].st_description
+                            line_fit_plot(models[i], df_dict)
+                    with plots[1]:
+                        row_space1 = st.columns(
+                               (0.1, 0.7, 0.1)
+                            )
+                        with row_space1[1]:
+                            plot_different_cdf(models[i])
 
-            # When there are two parameters to be fitted
-            elif "Temperature" in data.columns and "Strain amplitude" in data.columns:
-                data['Inverse_Temp'] = 11604.53 / (data['Temperature'] + 273.16)
-                data['Ln_Strain'] = np.log(data['Strain amplitude'])
-                diff_temp = data['Temperature'].unique()
+                    row_space1 = st.columns(
+                               (0.1, 0.7, 0.1)
+                            )
+                    with row_space1[1]:
+                        with st.container(border=True):
+                            st.markdown(f"#### Model Details")
+                            models[i].st_description
 
-                # Fit various different models
-                weibull = WeibullModel(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
-                lognormal = LognormalModel(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
-                normal = NormalModel(data['Inverse_Temp'], data['Failure cycle'], data['Strain amplitude']) 
-                expo = Exponential(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
-                gumbell = Gumbell(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
-                gamma = Gamma(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
+        # --- EXECUTE CASE 2 ---
+        elif analysis_type == "Fatigue Life Analysis":
+            data_lcf = data.copy()
+            data_lcf['Inverse_Temp'] = 11604.53 / (data_lcf[temp_col] + 273.16)
+            data_lcf['Ln_Strain'] = np.log(data_lcf[strain_col])
+            diff_temp = data_lcf[temp_col].unique()
 
-                models = [weibull, lognormal, normal, expo, gumbell, gamma]
-                # models = [weibull, lognormal]
-
-                st.header("Various Models")
-
-                tab_models = st.tabs([m.tab_name for m in models])
-
-                for i in range(len(tab_models)):
-                    with tab_models[i]:
-                        st.subheader(models[i].name)
-                        plots = st.tabs([f"Temperature {diff_temp[j]}" for j in range(len(diff_temp))])
-
-                        for j in range(len(diff_temp)):
-                            with plots[j]:
-                                row_space1 = st.columns(
+            # Fit various models (your predefined logic)
+            weibull = WeibullModel(data_lcf['Inverse_Temp'], data_lcf[cycles_col], data_lcf['Ln_Strain'])
+            lognormal = LognormalModel(data_lcf['Inverse_Temp'], data_lcf[cycles_col], data_lcf['Ln_Strain'])
+            normal = NormalModel(data_lcf['Inverse_Temp'], data_lcf[cycles_col], data_lcf[strain_col])
+            expo = Exponential(data_lcf['Inverse_Temp'], data_lcf[cycles_col], data_lcf['Ln_Strain'])
+            gumbell = Gumbell(data_lcf['Inverse_Temp'], data_lcf[cycles_col], data_lcf['Ln_Strain'])
+            gamma = Gamma(data_lcf['Inverse_Temp'], data_lcf[cycles_col], data_lcf['Ln_Strain'])
+            models = [weibull, lognormal, normal, expo, gumbell, gamma]
+            
+            # Display results in tabs (your predefined logic)
+            tab_models = st.tabs([m.tab_name for m in models])
+            for i, tab in enumerate(tab_models):
+                with tab:
+                    st.subheader(models[i].name)
+                    plots = st.tabs([f"Plots for Temp: {temp}°" for temp in diff_temp])
+                    for j, plot_tab in enumerate(plots):
+                        with plot_tab:
+                            row_space1 = st.columns(
                                 (0.1, 0.7, 0.1)
                                 )
-                                with row_space1[1]:
-                                    temp_data = data[data['Temperature']==diff_temp[j]]
-                                    params = models[i].minimize(models[i].bounds, (temp_data['Inverse_Temp'], temp_data['Failure cycle'], temp_data['Ln_Strain']))
-                                    # st.write("Upto here all things are ok")
-                                    plot_different_cdf_two_var(models[i].two_var_predict,params,diff_temp[j], data)
+                            with row_space1[1]:
+                                temp_data = data_lcf[data_lcf[temp_col] == diff_temp[j]]
+                                params = models[i].minimize(models[i].bounds, (temp_data['Inverse_Temp'], temp_data[cycles_col], temp_data['Ln_Strain']))
+                                plot_different_cdf_two_var(models[i].two_var_predict, params, diff_temp[j], data_lcf)
+                    
+                    with st.container(border=True):
+                        st.markdown(f"#### Model Details")
+                        models[i].st_description
 
-                        st.markdown("<div style='margin-top: 80px;'></div>", unsafe_allow_html=True)
-
-                        row_space1 = st.columns(
-                            (0.1, 0.7, 0.1)
-                        )
-                        with row_space1[1]:
-                            with st.container(border=True):
-                                models[i].st_description
-            else:
-                st.error("The uploaded file does not contain a 'Temperature' column.")
-
-    except Exception as e:
-        st.error(f"An error occurred while processing the file: {e}")
-else:
-    st.info("Please upload a .xlsx file to get started.")
+except Exception as e:
+    st.error(f"An error occurred during processing: {e}")
+    st.exception(e) # This will show a full traceback for easier debugging

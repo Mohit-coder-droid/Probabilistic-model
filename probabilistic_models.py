@@ -9,7 +9,7 @@ import streamlit as st
 
 class ProbModel(ABC):
     @abstractmethod
-    def log_likelihood(self):
+    def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain:np.ndarray=np.array([])):
         pass
 
     def minimize(self, bounds, args)->np.ndarray:
@@ -111,12 +111,13 @@ class ProbModel(ABC):
 
 class WeibullModel(ProbModel):
     def __init__(self,X_values:np.ndarray, Y_values:np.ndarray,X_values2:np.ndarray=np.array([]), power_law:bool=False)->None:
-        """Intializes Weibull Probabilistic Model
+        """Initializes Weibull Probabilistic Model
 
         Args:
-            X_values (np.ndarray): Temperature Values
-            Y_values (np.ndarray): Sigma Values
-            power_law (bool, optional): Whether to use power law or not. Defaults to False, which means that we will use Arrhenius equation instead of power law. 
+            X_values (np.ndarray): First accelerating variable (Temperature)
+            Y_values (np.ndarray): Values to be modelled
+            X_values2 (np.ndarray, optional): Second accelerating variable (Strain). Defaults to np.array([]).
+            power_law (bool, optional):Whether to use power law or not. Defaults to False, which means that we will use Arrhenius equation instead of power law. 
         """
         self.X_values = X_values
         self.X_values2 = X_values2
@@ -150,7 +151,7 @@ class WeibullModel(ProbModel):
             params (list): parameters that are to be determined
             temp (np.ndarray)
             sigma_values (np.ndarray)
-            strain(np.ndarray)
+            strain(np.ndarray): Defaults to np.array([]).
 
         Returns:
             Gives a negative sum of log likelihood for given data
@@ -170,15 +171,16 @@ class WeibullModel(ProbModel):
 
         return -np.sum(stats.weibull_min.logpdf(sigma_values, c=shape, scale=scale))
 
-    def predict(self,cdf:float, temperature_values:np.ndarray)->np.ndarray:
-        """To predict sigma values 
+    def predict(self,cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray=np.array([]))->np.ndarray:
+        """To predict values 
 
         Args:
             cdf (float)
             temperature_values (np.ndarray)
+            strain_values (np.ndarray): Defaults to np.array([])
 
         Returns:
-            Predicted sigma values according to the trained model
+            Predict values according to the trained model
         """
         if self.power_law:
             return np.exp(
@@ -198,6 +200,14 @@ class WeibullModel(ProbModel):
         )
     
     def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        """To predict values when there are two accelerating variables
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray)
+            params (np.ndarray): Parameters that will be needed to predict values \n\n `shape, intercept, slope, v = params`. \n 
+        """
         shape, intercept, slope, v = params
         return np.exp(
             (intercept + (slope * 11604.53 / (temperature_values + 273.16)) + v * np.log(strain_values)) +
@@ -206,6 +216,14 @@ class WeibullModel(ProbModel):
     
     @staticmethod
     def estimate_params(data:np.ndarray, **kwargs):
+        """Fit a weibull model on the `data`
+
+        Args:
+            data (np.ndarray)
+
+        Returns:
+            Gives shape and scale of the fitted weibull model 
+        """
         shape, loc, scale = stats.weibull_min.fit(data, floc=0, **kwargs)
         return shape, scale
     
@@ -284,7 +302,15 @@ class WeibullModel(ProbModel):
         return ''
 
 class NormalModel(ProbModel):
-    def __init__(self, X_values, Y_values, X_values2:np.ndarray=np.array([])):
+    def __init__(self, X_values:np.ndarray, Y_values:np.ndarray, X_values2:np.ndarray=np.array([])):
+        """Initializes Normal Probabilistic Model
+
+        Args:
+            X_values (np.ndarray): First accelerating variable (Temperature)
+            Y_values (np.ndarray): Values to be modelled
+            X_values2 (np.ndarray, optional): Second accelerating variable (Strain). Defaults to np.array([]).
+        """
+        
         self.X_values = X_values
         self.X_values2 = X_values2
         self.Y_values = Y_values
@@ -302,7 +328,18 @@ class NormalModel(ProbModel):
             self.bounds = [(1e-6, 30),(-300, 300), (-20, 20), (-300, 300)]
             self.sigma, self.intercept, self.slope,_ = self.minimize(self.bounds, args=(self.X_values, self.Y_values))
 
-    def log_likelihood(self, params,temp, sigma_values, strain:np.ndarray=np.array([])):
+    def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain:np.ndarray=np.array([])):
+        """Log likelihood 
+
+        Args:
+            params (list): parameters that are to be determined
+            temp (np.ndarray)
+            sigma_values (np.ndarray)
+            strain(np.ndarray): Defaults to np.array([]).
+
+        Returns:
+            Gives a negative sum of log likelihood for given data
+        """
         sigma = params[0]
         k = params[1]
         m = params[2]
@@ -319,23 +356,49 @@ class NormalModel(ProbModel):
 
         return -log_likelihood
 
-    def predict(self,cdf, temperature_values, strain_values:np.ndarray=np.array([])):
+    def predict(self,cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray=np.array([])):
+        """To predict values 
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray): Defaults to np.array([])
+
+        Returns:
+            Predict values according to the trained model
+        """
         z = np.sqrt(2) * self.sigma * erfinv(2 * cdf - 1)
         if self.two_var:
             return self.intercept + (self.slope * 11604.53) / (temperature_values + 273.16) + self.q * np.log(strain_values) + z
         return self.intercept + (self.slope * 11604.53) / (temperature_values + 273.16) + z
     
     def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        """To predict values when there are two accelerating variables
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray)
+            params (np.ndarray): Parameters that will be needed to predict values \n\n `sigma, k, m, l= params`. \n 
+        """
         sigma, k, m, l = params
         z = np.sqrt(2) * sigma * erfinv(2 * cdf - 1)
         return np.exp(k + (m * 11604.53) / (temperature_values + 273.16) + l * np.log(strain_values) + z) / 1000000
     
     @staticmethod
-    def estimate_params(data):
+    def estimate_params(data:np.ndarray):
+        """Fit a normal model on the `data`
+
+        Args:
+            data (np.ndarray)
+
+        Returns:
+            Gives shape and scale of the fitted normal model 
+        """
         mu, sigma = np.mean(data), np.std(data, ddof=0)
         return mu, sigma
     
-    def transform(self,data, temp):
+    def transform(self,data:np.ndarray, temp:np.ndarray):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
@@ -400,6 +463,14 @@ class NormalModel(ProbModel):
 
 class LognormalModel(ProbModel):
     def __init__(self,X_values:np.ndarray, Y_values:np.ndarray,X_values2:np.ndarray=np.array([]), power_law:bool=False)->None:
+        """Initializes LogNormal Probabilistic Model
+
+        Args:
+            X_values (np.ndarray): First accelerating variable (Temperature)
+            Y_values (np.ndarray): Values to be modelled
+            X_values2 (np.ndarray, optional): Second accelerating variable (Strain). Defaults to np.array([]).
+            power_law (bool, optional):Whether to use power law or not. Defaults to False, which means that we will use Arrhenius equation instead of power law. 
+        """
         self.X_values = X_values
         self.X_values2 = X_values2
         self.Y_values = Y_values
@@ -423,6 +494,17 @@ class LognormalModel(ProbModel):
 
 
     def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain:np.ndarray=np.array([])):
+        """Log likelihood 
+
+        Args:
+            params (list): parameters that are to be determined
+            temp (np.ndarray)
+            sigma_values (np.ndarray)
+            strain(np.ndarray): Defaults to np.array([]).
+
+        Returns:
+            Gives a negative sum of log likelihood for given data
+        """
         k = params[0]
         m = params[1]
         sigma = params[2]
@@ -438,7 +520,17 @@ class LognormalModel(ProbModel):
         log_likelihood = np.sum(stats.norm.logpdf(np.log(sigma_values), loc=mu, scale=sigma) - np.log(sigma_values))
         return -log_likelihood  
 
-    def predict(self,cdf, temperature_values, strain_values = np.array([])):
+    def predict(self,cdf:float, temperature_values:np.ndarray, strain_values = np.array([])):
+        """To predict values 
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray): Defaults to np.array([])
+
+        Returns:
+            Predict values according to the trained model
+        """
         z = np.sqrt(2) * self.sigma * erfinv(2 * cdf - 1)
         if self.power_law:
             return np.exp(self.k + self.m * np.log(temperature_values) + z)
@@ -448,17 +540,33 @@ class LognormalModel(ProbModel):
         return np.exp(self.k + (self.m * 11604.53) / (temperature_values + 273.16) + z)
     
     def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        """To predict values when there are two accelerating variables
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray)
+            params (np.ndarray): Parameters that will be needed to predict values \n\n `k, m, sigma, l= params`. \n 
+        """
         k, m, sigma, l = params
         z = np.sqrt(2) * sigma * erfinv(2 * cdf - 1)
         return np.exp(k +  (m * 11604.53) / (temperature_values + 273.16) + l * np.log(strain_values) + z) / 1000000
     
     @staticmethod
-    def estimate_params(data):
+    def estimate_params(data:np.ndarray):
+        """Fit a Lognormal model on the `data`
+
+        Args:
+            data (np.ndarray)
+
+        Returns:
+            Gives shape and scale of the fitted Lognormal model 
+        """
         log_data = np.log(data)
         mu, sigma = np.mean(log_data), np.std(log_data, ddof=0)
         return mu, sigma
     
-    def transform(self,data, temp):
+    def transform(self,data:np.ndarray, temp:np.ndarray):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
@@ -535,15 +643,30 @@ class LognormalModel(ProbModel):
         return ''
     
 class WeibullModel3(ProbModel):
-    def __init__(self,X_values, Y_values): 
+    def __init__(self,X_values:np.ndarray, Y_values:np.ndarray): 
+        """Initializes Weibull Probabilistic Model with 3 parameters
+
+        Args:
+            X_values (np.ndarray): First accelerating variable (Temperature)
+            Y_values (np.ndarray): Values to be modelled
+        """
         self.X_values = X_values
         self.Y_values = Y_values
         self.name = "3-Parameter Weibull Model"
         self.tab_name = "3-Parameter Weibull"
         self.minimize()
 
-    def log_likelihood(self,params, temp, sigma_values):
-        """Weibull regression model"""
+    def log_likelihood(self, params:list,temp:np.ndarray, sigma_values:np.ndarray):
+        """Log likelihood 
+
+        Args:
+            params (list): parameters that are to be determined
+            temp (np.ndarray)
+            sigma_values (np.ndarray)
+
+        Returns:
+            Gives a negative sum of log likelihood for given data
+        """
         shape = params[0]
         u = params[1]
         w = params[2]
@@ -572,18 +695,35 @@ class WeibullModel3(ProbModel):
 
         self.shape, self.intercept, self.slope,self.delta = result_regression.x
 
-    def predict(self,cdf, temperature_values):
+    def predict(self,cdf:float, temperature_values:np.ndarray):
+        """To predict values 
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+
+        Returns:
+            Predict values according to the trained model
+        """
         return np.exp(
             (self.intercept + (self.slope * 11604.53 / (temperature_values + 273.16))) +
             ((1 / self.shape) * np.log(np.log(1 / (1 - cdf))))
         ) + self.delta
     
     @staticmethod
-    def estimate_params(data, **kwargs):
+    def estimate_params(data:np.ndarray, **kwargs):
+        """Fit a weibull 3-parameter model on the `data`
+
+        Args:
+            data (np.ndarray)
+
+        Returns:
+            Gives shape and scale of the fitted weibull 3-parameter model 
+        """
         shape, loc, scale = stats.weibull_min.fit(data, **kwargs)  # Lock location to 0 for typical Weibull fitting
         return shape, scale, loc
     
-    def transform(self, data):
+    def transform(self, data:np.ndarray):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
@@ -637,7 +777,13 @@ class WeibullModel3(ProbModel):
         return ''
 
 class LognormalModel3(ProbModel):
-    def __init__(self, X_values, Y_values):
+    def __init__(self, X_values:np.ndarray, Y_values:np.ndarray):
+        """Initializes LogNormal Probabilistic Model with 3 parameters
+
+        Args:
+            X_values (np.ndarray): First accelerating variable (Temperature)
+            Y_values (np.ndarray): Values to be modelled
+        """
         self.X_values = X_values
         self.Y_values = Y_values
         self.name = "3-Parameter LogNormal Model"
@@ -645,7 +791,17 @@ class LognormalModel3(ProbModel):
 
         self.minimize()
 
-    def log_likelihood(self, params,temp, sigma_values):
+    def log_likelihood(self, params:list,temp:np.ndarray, sigma_values:np.ndarray):
+        """Log likelihood 
+
+        Args:
+            params (list): parameters that are to be determined
+            temp (np.ndarray)
+            sigma_values (np.ndarray)
+
+        Returns:
+            Gives a negative sum of log likelihood for given data
+        """
         k,m, sigma,gamma = params
         if sigma <= 0:
             return np.inf  # Avoid invalid sigma
@@ -667,17 +823,35 @@ class LognormalModel3(ProbModel):
 
         self.k, self.m, self.sigma,self.gamma = result_lognormal.x
 
-    def predict(self,cdf, temperature_values):
+    def predict(self,cdf:float, temperature_values:np.ndarray):
+        """To predict values 
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray): Defaults to np.array([])
+
+        Returns:
+            Predict values according to the trained model
+        """
         z = np.sqrt(2) * self.sigma * erfinv(2 * cdf - 1)
         return np.exp(self.k + (self.m * 11604.53) / (temperature_values + 273.16) + z) + self.gamma
     
     @staticmethod
-    def estimate_params(data):
+    def estimate_params(data:np.ndarray):
+        """Fit a lognormal 3-parameter model on the `data`
+
+        Args:
+            data (np.ndarray)
+
+        Returns:
+            Gives shape and scale of the fitted lognormal 3-parameter model 
+        """
         log_data = np.log(data)
         mu, sigma = np.mean(log_data), np.std(log_data, ddof=0)
         return mu, sigma
     
-    def transform(self,data, temp):
+    def transform(self,data:np.ndarray, temp:np.ndarray):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
@@ -732,7 +906,14 @@ class LognormalModel3(ProbModel):
         return ''
 
 class Gumbell(ProbModel):   
-    def __init__(self,X_values, Y_values,X_values2:np.ndarray=np.array([])):
+    def __init__(self,X_values:np.ndarray, Y_values:np.ndarray,X_values2:np.ndarray=np.array([])):
+        """Initializes Gumbell Probabilistic Model
+
+        Args:
+            X_values (np.ndarray): First accelerating variable (Temperature)
+            Y_values (np.ndarray): Values to be modelled
+            X_values2 (np.ndarray, optional): Second accelerating variable (Strain). Defaults to np.array([]).
+        """
         self.X_values = X_values
         self.X_values2 = X_values2
         self.Y_values = Y_values
@@ -753,8 +934,18 @@ class Gumbell(ProbModel):
 
             self.intercept, self.slope,self.scale = self.minimize( bounds, args=(self.X_values, self.Y_values))
 
-    def log_likelihood(self,params, temp, sigma_values, strain_values=np.array([])):
-        """Gumbell Log likelihood"""
+    def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain_values=np.array([])):
+        """Log likelihood 
+
+        Args:
+            params (list): parameters that are to be determined
+            temp (np.ndarray)
+            sigma_values (np.ndarray)
+            strain(np.ndarray): Defaults to np.array([]).
+
+        Returns:
+            Gives a negative sum of log likelihood for given data
+        """
         u = params[0]           # Intercept
         w = params[1]        # Slope
         scale = params[2]        # Scale
@@ -772,7 +963,17 @@ class Gumbell(ProbModel):
         logpdf = -z - np.exp(-z) - np.log(scale)
         return -np.sum(logpdf)
 
-    def predict(self,cdf, temperature_values,strain_values=np.array([])):
+    def predict(self,cdf:float, temperature_values:np.ndarray,strain_values=np.array([])):
+        """To predict values 
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray): Defaults to np.array([])
+
+        Returns:
+            Predict values according to the trained model
+        """
         inv_temp = 11604.53 / (temperature_values + 273.16)
         if self.two_var:
             return (self.intercept + self.slope * inv_temp + self.v*np.log(strain_values) - self.scale * np.log(-np.log(cdf))) / 1000000
@@ -780,12 +981,28 @@ class Gumbell(ProbModel):
         return self.intercept + self.slope * inv_temp - self.scale * np.log(-np.log(cdf))
     
     def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        """To predict values when there are two accelerating variables
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray)
+            params (np.ndarray): Parameters that will be needed to predict values \n `u,w,scale,v= params`. \n 
+        """
         u,w,scale,v = params
         inv_temp = 11604.53 / (temperature_values + 273.16)
         return (u + w * inv_temp + v*np.log(strain_values) - scale * np.log(-np.log(cdf)))/1000000
     
     @staticmethod
-    def estimate_params(data, **kwargs):
+    def estimate_params(data:np.ndarray, **kwargs):
+        """Fit a gumbell model on the `data`
+
+        Args:
+            data (np.ndarray)
+
+        Returns:
+            Gives shape and scale of the fitted gumbell model 
+        """
         pass
     
     def transform(self, data, temp):
@@ -855,7 +1072,14 @@ class Gumbell(ProbModel):
         return ''
 
 class Exponential(ProbModel):
-    def __init__(self,X_values, Y_values, X_values2:np.ndarray=np.array([])):
+    def __init__(self,X_values:np.ndarray, Y_values:np.ndarray, X_values2:np.ndarray=np.array([])):
+        """Initializes Exponential Probabilistic Model
+
+        Args:
+            X_values (np.ndarray): First accelerating variable (Temperature)
+            Y_values (np.ndarray): Values to be modelled
+            X_values2 (np.ndarray, optional): Second accelerating variable (Strain). Defaults to np.array([]).
+        """
         self.X_values = X_values
         self.X_values2 = X_values2
         self.Y_values = Y_values
@@ -873,8 +1097,18 @@ class Exponential(ProbModel):
             bounds = [(-10, 10), (-10, 10)]
             self.intercept, self.slope = self.minimize(bounds, args=(self.X_values, self.Y_values))
 
-    def log_likelihood(self,params, temp, sigma_values, strain_values = np.array([])):
-        """Exponential Log likelihood"""
+    def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain_values = np.array([])):
+        """Log likelihood 
+
+        Args:
+            params (list): parameters that are to be determined
+            temp (np.ndarray)
+            sigma_values (np.ndarray)
+            strain(np.ndarray): Defaults to np.array([]).
+
+        Returns:
+            Gives a negative sum of log likelihood for given data
+        """
         u = params[0]
         w = params[1]
 
@@ -886,22 +1120,40 @@ class Exponential(ProbModel):
                 
         return -np.sum(stats.expon.logpdf(sigma_values, scale=scale))
 
-    def predict(self,cdf, temperature_values):
+    def predict(self,cdf:float, temperature_values:np.ndarray):
+        """To predict values 
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray): Defaults to np.array([])
+
+        Returns:
+            Predict values according to the trained model
+        """
         inv_temp_range = 11604.53 / (temperature_values + 273.16)
         lambda_vals = np.exp(self.intercept + self.slope * inv_temp_range)
         return -lambda_vals * np.log(1 - cdf)
     
     def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        """To predict values when there are two accelerating variables
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray)
+            params (np.ndarray): Parameters that will be needed to predict values \n\n `u,w,v= params`. \n 
+        """
         u,w,v  = params
         inv_temp_range = 11604.53 / (temperature_values + 273.16)
         lambda_vals = np.exp(u + w * inv_temp_range + v * np.log(strain_values))
         return -lambda_vals * np.log(1 - cdf) / 1000000
     
     @staticmethod
-    def estimate_params(data, **kwargs):
+    def estimate_params(data:np.ndarray, **kwargs):
         pass
     
-    def transform(self, data, temp):
+    def transform(self, data:np.ndarray, temp:np.ndarray):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
@@ -966,7 +1218,14 @@ class Exponential(ProbModel):
         return ''
 
 class Gamma(ProbModel):
-    def __init__(self,X_values, Y_values,X_values2:np.ndarray=np.array([])):
+    def __init__(self,X_values:np.ndarray, Y_values:np.ndarray,X_values2:np.ndarray=np.array([])):
+        """Initializes Gamma Probabilistic Model
+
+        Args:
+            X_values (np.ndarray): First accelerating variable (Temperature)
+            Y_values (np.ndarray): Values to be modelled
+            X_values2 (np.ndarray, optional): Second accelerating variable (Strain). Defaults to np.array([]).
+        """
         self.X_values = X_values
         self.X_values2 = X_values2
         self.Y_values = Y_values
@@ -983,8 +1242,18 @@ class Gamma(ProbModel):
             self.bounds = [(1e-6, 1000), (-10, 10),(-10, 10)]
             self.shape,self.intercept, self.slope= self.minimize(self.bounds, args=(self.X_values, self.Y_values))
 
-    def log_likelihood(self,params, temp, sigma_values, strain_values:np.ndarray=np.array([])):
-        """Exponential Log likelihood"""
+    def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain_values:np.ndarray=np.array([])):
+        """Log likelihood 
+
+        Args:
+            params (list): parameters that are to be determined
+            temp (np.ndarray)
+            sigma_values (np.ndarray)
+            strain(np.ndarray): Defaults to np.array([]).
+
+        Returns:
+            Gives a negative sum of log likelihood for given data
+        """
         u = params[1]
         w = params[2]
         shape = params[0]
@@ -996,7 +1265,17 @@ class Gamma(ProbModel):
         
         return -np.sum(stats.gamma.logpdf(sigma_values, a=shape, scale=scale))
 
-    def predict(self,cdf, temperature_values, strain_values:np.ndarray=np.array([])):
+    def predict(self,cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray=np.array([])):
+        """To predict values 
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray): Defaults to np.array([])
+
+        Returns:
+            Predict values according to the trained model
+        """
         inv_temp_range = 11604.53 / (temperature_values + 273.16)
 
         if self.two_var:
@@ -1007,16 +1286,32 @@ class Gamma(ProbModel):
         return stats.gamma.ppf(cdf, a=self.shape, scale=scale_range)
     
     def two_var_predict(self, cdf:float, temperature_values:np.ndarray, strain_values:np.ndarray, params:np.ndarray) -> np.ndarray:
+        """To predict values when there are two accelerating variables
+
+        Args:
+            cdf (float)
+            temperature_values (np.ndarray)
+            strain_values (np.ndarray)
+            params (np.ndarray): Parameters that will be needed to predict values \n\n `shape,u,w,v= params`. \n 
+        """
         shape,u,w,v  = params
         inv_temp_range = 11604.53 / (temperature_values + 273.16)
         scale_range = np.exp(u + w * inv_temp_range + v * np.log(strain_values))
         return stats.gamma.ppf(cdf, a=shape, scale=scale_range) / 1000000
     
     @staticmethod
-    def estimate_params(data, **kwargs):
+    def estimate_params(data:np.ndarray, **kwargs):
+        """Fit a gamma model on the `data`
+
+        Args:
+            data (np.ndarray)
+
+        Returns:
+            Gives shape and scale of the fitted gamma model 
+        """
         return stats.gamma.fit(data, **kwargs)
     
-    def transform(self, data, temp):
+    def transform(self, data:np.ndarray, temp:np.ndarray):
         n = len(data)
         cdf_values = np.array([median_rank(n, i + 1) for i in range(n)])
 
