@@ -123,6 +123,7 @@ class WeibullModel(ProbModel):
         self.Y_values = Y_values
         self.name = "Weibull Model"
         self.tab_name = "Weibull"
+        self.power_law = power_law
         if power_law:
             self.name = "Weibull Model With Power Law"
             self.tab_name = "Weibull (Power)"
@@ -140,7 +141,6 @@ class WeibullModel(ProbModel):
             # init_params = [2.0, np.log(np.mean(self.Y_values)), 0.0]
             bounds = [(1e-6, 30), (-10, 10), (-10, 10)]
 
-            self.power_law = power_law
             self.shape, self.intercept, self.slope = self.minimize( bounds, args=(self.X_values, self.Y_values))
 
     def log_likelihood(self,params:list, temp:np.ndarray, sigma_values:np.ndarray, strain:np.ndarray=np.array([])):
@@ -258,6 +258,16 @@ class WeibullModel(ProbModel):
         | $m$ | {self.shape:.6f} |
         """
 
+        if self.two_var:
+            variable_values = f"""
+            | Variable | Values |
+            |----------|-------------|
+            | $U_t$ | {self.intercept:.6f} |
+            | $W_t$ | {self.slope:.6f} |
+            | $V_t$ | {self.v:.6f} |
+            | $m$ | {self.shape:.6f} |
+            """
+
         if self.power_law:
             ar_cdf = r"""
             \sigma_f = exp\left(\biggl\{U_t+W_t ln(T)\biggl\}+\frac{1}{m}ln\left(ln\left(\frac{1}{1-f_w}\right)\right)\right) \quad \text{...(4)}
@@ -374,6 +384,16 @@ class NormalModel(ProbModel):
         | $\sigma_{{sl}}$ | {self.slope} |
         """
 
+        if self.two_var:
+            variable_values = f"""
+        | Variable | Values |
+        |----------|-------------|
+        | $P_t$ | {self.intercept} |
+        | $R_t$ | {self.slope} |
+        | $Q_t$ | {self.q} |
+        | $\sigma_{{sl}}$ | {self.slope} |
+        """
+
         super().st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
 
         return ''
@@ -385,6 +405,7 @@ class LognormalModel(ProbModel):
         self.Y_values = Y_values
         self.name = "LogNormal Model"
         self.tab_name = "LogNormal"
+        self.power_law = power_law
         if power_law:
             self.name = "LogNormal Model With Power Law"
             self.tab_name = "LogNormal (Power)"
@@ -397,8 +418,6 @@ class LognormalModel(ProbModel):
             self.bounds = [(-20, 20),(-20, 20),(1e-6, 20), (-20, 20)]
             self.k, self.m, self.sigma, self.l = self.minimize(self.bounds, args=(self.X_values, self.Y_values, self.X_values2))
         else:
-            self.power_law = power_law
-
             self.bounds = [(-20, 20),(-20, 20), (1e-10, 20)]
             self.k, self.m, self.sigma = self.minimize(self.bounds, args=(self.X_values, self.Y_values))
 
@@ -487,6 +506,16 @@ class LognormalModel(ProbModel):
         |----------|-------------|
         | $K_t$ | {self.k:.6f} |
         | $M_t$ | {self.m:.6f} |
+        | $\sigma{{sl}}$ | {self.sigma:.6f} |
+        """
+
+        if self.two_var:
+            variable_values = f"""
+        | Variable | Values |
+        |----------|-------------|
+        | $K_t$ | {self.k:.6f} |
+        | $M_t$ | {self.m:.6f} |
+        | $L_t$ | {self.l:.6f} |
         | $\sigma{{sl}}$ | {self.sigma:.6f} |
         """
 
@@ -811,6 +840,16 @@ class Gumbell(ProbModel):
         | $\sigma_m$ | {self.scale:.6f} |
         """
 
+        if self.two_var:
+            variable_values = f"""
+            | Variable | Values |
+            |----------|-------------|
+            | $U_t$ | {self.intercept:.6f} |
+            | $W_t$ | {self.slope:.6f} |
+            | $V_t$ | {self.v:.6f} |
+            | $\sigma_m$ | {self.scale:.6f} |
+            """
+
         super().st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
 
         return ''
@@ -912,6 +951,15 @@ class Exponential(ProbModel):
         | $U_t$ | {self.intercept:.6f} |
         | $W_t$ | {self.slope:.6f} |
         """
+
+        if self.two_var:
+            variable_values = f"""
+            | Variable | Values |
+            |----------|-------------|
+            | $U_t$ | {self.intercept:.6f} |
+            | $W_t$ | {self.slope:.6f} |
+            | $V_t$ | {self.v:.6f} |
+            """
 
         super().st_description(cdf, pdf, re_cdf, ar_cdf, fatigue_cdf, variable_values)
 
@@ -1028,6 +1076,16 @@ class Gamma(ProbModel):
         | $W_t$ | {self.slope:.6f} |
         | $\sigma_m$ | {self.shape:.6f} |
         """
+
+        if self.two_var:
+            variable_values = f"""
+            | Variable | Values |
+            |----------|-------------|
+            | $U_t$ | {self.intercept:.6f} |
+            | $W_t$ | {self.slope:.6f} |
+            | $V_t$ | {self.v:.6f} |
+            | $\sigma_m$ | {self.shape:.6f} |
+            """
         st.markdown(variable_values)
 
         return ''

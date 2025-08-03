@@ -55,6 +55,27 @@ def line_fit_plot(model,df_dict):
     ax.legend(fontsize=10)
     st.pyplot(fig)
 
+def plot_different_cdf_two_var(predict, params,temperature,data,cdf=[0.5,0.9,0.1,0.99,0.01]):
+    fig, ax = plt.subplots(figsize=(8,6))
+    
+    strain_values = np.linspace(0.002,0.020, 100)
+    temperature_values = np.ones_like(strain_values) * temperature
+    data = data[data['Temperature']==temperature]
+
+    ax.scatter(data["Unnamed: 2"] ,data['Strain amplitude'], edgecolors='black', alpha=0.7, s=30, label=f"Vendor 1")
+
+    for i in range(len(cdf)):
+        ys_predicted_cdf = predict(cdf[i],temperature_values, strain_values, params)
+        ax.plot( ys_predicted_cdf,strain_values, linestyle="-", linewidth=1, label=f"Predicted YS (CDF={cdf[i]})")
+
+    ax.set_xscale('log')
+    ax.set_xlabel("Total Strain Amplitude", fontsize=12, fontweight="bold")
+    ax.set_ylabel("Normalized Failure Cycle", fontsize=12, fontweight="bold")
+    ax.set_title("For Temperature {}".format(temperature), fontsize=14, fontweight="bold")
+    ax.set_xlim(1e-3,1)
+    ax.legend()
+    st.pyplot(fig)
+
 if uploaded_files is not None:
     try:
         global selected_files
@@ -69,11 +90,12 @@ if uploaded_files is not None:
             data = pd.concat(list(selected_files.values()), ignore_index=True)
 
             # Check if 'Temperature' column exists
-            if "Temperature" in data.columns:
+            if "Temperature" in data.columns and "Mpa" in data.columns:
                 df,df_dict = df_processor(data)
                 X_values = df['Inverse_Temp'].values
                 Y_values = df['Mpa'].values
-                # st.write("It came here")
+
+                # Fit various models
                 weibull = WeibullModel(X_values, Y_values)
                 lognormal = LognormalModel(X_values, Y_values)
                 weibull_p = WeibullModel(np.log(df['Temperature'].values), Y_values, power_law=True)
@@ -119,6 +141,51 @@ if uploaded_files is not None:
                             with st.container(border=True):
                                 models[i].st_description
 
+            # When there are two parameters to be fitted
+            elif "Temperature" in data.columns and "Strain amplitude" in data.columns:
+                data['Inverse_Temp'] = 11604.53 / (data['Temperature'] + 273.16)
+                data['Ln_Strain'] = np.log(data['Strain amplitude'])
+                diff_temp = data['Temperature'].unique()
+
+                # Fit various different models
+                weibull = WeibullModel(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
+                lognormal = LognormalModel(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
+                normal = NormalModel(data['Inverse_Temp'], data['Failure cycle'], data['Strain amplitude']) 
+                expo = Exponential(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
+                gumbell = Gumbell(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
+                gamma = Gamma(data['Inverse_Temp'], data['Failure cycle'], data['Ln_Strain'])
+
+                models = [weibull, lognormal, normal, expo, gumbell, gamma]
+                # models = [weibull, lognormal]
+
+                st.header("Various Models")
+
+                tab_models = st.tabs([m.tab_name for m in models])
+
+                for i in range(len(tab_models)):
+                    with tab_models[i]:
+                        st.subheader(models[i].name)
+                        plots = st.tabs([f"Temperature {diff_temp[j]}" for j in range(len(diff_temp))])
+
+                        for j in range(len(diff_temp)):
+                            with plots[j]:
+                                row_space1 = st.columns(
+                                (0.1, 0.7, 0.1)
+                                )
+                                with row_space1[1]:
+                                    temp_data = data[data['Temperature']==diff_temp[j]]
+                                    params = models[i].minimize(models[i].bounds, (temp_data['Inverse_Temp'], temp_data['Failure cycle'], temp_data['Ln_Strain']))
+                                    # st.write("Upto here all things are ok")
+                                    plot_different_cdf_two_var(models[i].two_var_predict,params,diff_temp[j], data)
+
+                        st.markdown("<div style='margin-top: 80px;'></div>", unsafe_allow_html=True)
+
+                        row_space1 = st.columns(
+                            (0.1, 0.7, 0.1)
+                        )
+                        with row_space1[1]:
+                            with st.container(border=True):
+                                models[i].st_description
             else:
                 st.error("The uploaded file does not contain a 'Temperature' column.")
 
