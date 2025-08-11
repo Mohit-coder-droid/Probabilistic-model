@@ -119,7 +119,7 @@ try:
         # 3. Select Analysis Type
         analysis_type = st.radio(
             "Select Analysis Type:",
-            ("Yield Stress vs. Temperature", "Fatigue Life Analysis"),
+            ("Yield Stress vs. Temperature", "Fatigue Life Analysis", "Fatigue Crack growth Analysis"),
             help="Choose the type of model you want to fit based on your data."
         )
         
@@ -131,7 +131,7 @@ try:
             x_col = st.selectbox("Select the Temperature column (X-axis)", options, index=options.index('Temperature') if 'Temperature' in options else 0)
             y_col = st.selectbox("Select the Yield Stress column (Y-axis)", options, index=options.index('Mpa') if 'Mpa' in options else 1)
             
-            run_button = st.button("Run Analysis", use_container_width=True, type="primary")
+            run_button = st.toggle("Run Analysis")
 
         # --- CASE 2: Fatigue Life Analysis ---
         elif analysis_type == "Fatigue Life Analysis":
@@ -139,7 +139,19 @@ try:
             strain_col = st.selectbox("Select the Strain Amplitude column", options, index=options.index('Strain amplitude') if 'Strain amplitude' in options else 1)
             cycles_col = st.selectbox("Select the Failure Cycles column", options, index=options.index('Failure cycle') if 'Failure cycle' in options else 2)
 
-            run_button = st.button("Run Fatigue Analysis", use_container_width=True, type="primary")
+            run_button = st.toggle("Run Fatigue Analysis")
+
+        elif analysis_type == "Fatigue Crack growth Analysis":
+            temp_col = st.selectbox("Select the Temperature column", options, index=options.index('Temperature, C') if 'Temperature, C' in options else 0)
+            c_col = st.selectbox("Select c column", options, index=options.index('c ') if 'c ' in options else 0)
+            m_col = st.selectbox("Select m column", options, index=options.index('m') if 'm' in options else 0)
+            krange_col = st.selectbox("Select ▲ K Range column", options, index=options.index('▲ K Range') if '▲ K Range' in options else 0)
+            r_ratio_col = st.selectbox("Select R- Ratio column", options, index=options.index('R- Ratio') if 'R- Ratio' in options else 0)
+
+            isLinear = st.selectbox("Regression Equation",["Linear","Arrhenius"],index=0)
+
+            run_button = st.toggle("Run Fatigue Crack growth Analysis")
+            
 
 # --- Run Analysis and Display Results ---
     if run_button:
@@ -173,19 +185,19 @@ try:
                     plots = st.tabs(["Probability Line Fit Plot", "Yield Stress vs Temperature"])
                     with plots[0]:
                         row_space1 = st.columns(
-                               (0.1, 0.7, 0.1)
+                                (0.1, 0.7, 0.1)
                             )
                         with row_space1[1]:
                             line_fit_plot(models[i], df_dict)
                     with plots[1]:
                         row_space1 = st.columns(
-                               (0.1, 0.7, 0.1)
+                                (0.1, 0.7, 0.1)
                             )
                         with row_space1[1]:
                             plot_different_cdf(models[i])
 
                     row_space1 = st.columns(
-                               (0.1, 0.7, 0.1)
+                                (0.1, 0.7, 0.1)
                             )
                     with row_space1[1]:
                         with st.container(border=True):
@@ -227,6 +239,56 @@ try:
                     with st.container(border=True):
                         st.markdown(f"#### Model Details")
                         models[i].st_description
+
+        elif analysis_type == "Fatigue Crack growth Analysis":
+            df = fatigue_crack_preprocess_df(data,temp_col, c_col, m_col, krange_col, r_ratio_col )
+            walker = WalkerEq(df, isLinear=(isLinear=="Linear"))
+            # walker = WalkerEq(df, isLinear=False)
+
+            tab_models = st.tabs(["Regression", "da_dN vs R", "da_dN vs ΔK", "da_dN vs Temperature"])
+
+            with tab_models[0]:
+                row_space1 = st.columns(
+                                (0.1, 0.7, 0.1)
+                                )
+                with row_space1[1]:
+                    op = ["Regression Plot","da/dN regression Plot","da/dN regression error Plot"]
+                    walker_plot = st.selectbox("Select Plot",op)
+                    
+                    if walker_plot == op[0]:
+                        walker.regression_plot(walker.slope_, walker.intercept_)
+                    if walker_plot == op[1]:
+                        walker.regression_dAdN_plot()
+                    if walker_plot == op[2]:
+                        walker.regression_dAdN_error_plot()
+
+            with tab_models[1]:
+                row_space1 = st.columns(
+                                (0.1, 0.7, 0.1)
+                                )
+                with row_space1[1]:
+                    walker.plot_da_dN_vs_r_ratio_equation()
+
+            with tab_models[2]:
+                row_space1 = st.columns(
+                                (0.1, 0.7, 0.1)
+                                )
+                with row_space1[1]:
+                    walker.plot_da_dN_vs_deltaK_equation()
+
+            with tab_models[3]:
+                row_space1 = st.columns(
+                                (0.1, 0.7, 0.1)
+                                )
+                with row_space1[1]:
+                    walker.plot_da_dN_vs_temperature_equation()
+            
+            row_space1 = st.columns(
+                                (0.1, 0.7, 0.1)
+                                )
+            with row_space1[1]:
+                walker.st_description()
+
 
 except Exception as e:
     st.error(f"An error occurred during processing: {e}")

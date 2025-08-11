@@ -1,8 +1,12 @@
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import scipy.stats as stats
 from scipy.special import erfinv
 from abc import ABC, abstractmethod
 from scipy.optimize import differential_evolution
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 from scipy import optimize   # to be deleted later on
 from utils import median_rank
 import streamlit as st
@@ -987,7 +991,7 @@ class Gumbell(ProbModel):
             cdf (float)
             temperature_values (np.ndarray)
             strain_values (np.ndarray)
-            params (np.ndarray): Parameters that will be needed to predict values \n `u,w,scale,v= params`. \n 
+            params (np.ndarray): Parameters that will be needed to predict values \n `u,w,scale,v= params`.  
         """
         u,w,scale,v = params
         inv_temp = 11604.53 / (temperature_values + 273.16)
@@ -1384,4 +1388,475 @@ class Gamma(ProbModel):
         st.markdown(variable_values)
 
         return ''
-    
+
+# Make a class of walker equation to have values to plot various things
+class WalkerEq():
+    def __init__(self, df:pd.DataFrame, isLinear:bool=True):
+        self.df = df 
+        self.linear = isLinear  # whether the relationship is linear or arrhenious
+
+        # Do the basic regressions
+        self.implement_paris_eq()
+        if isLinear:
+            self.linear_walker_regr()
+        else:
+            self.arrhenius_walker_regr()
+
+
+        self.implement_walker_eq()
+        self.regression_walker_eq()
+
+    def implement_paris_eq(self):
+        """Implementation of Paris–Erdoğan equation"""
+        self.df["da_dN"] = self.df.apply(
+            lambda row: row["c"] * ((row["Delta K"]) ** row["m"]),
+            axis = 1
+        )
+
+        self.df['Temperature,K'] = self.df.apply(
+            lambda row: row['Temperature, C'] + 273.15,
+            axis = 1
+        )
+
+    @staticmethod
+    def lin_reg(X, Y):
+        # Compute means
+        X_mean = sum(X) / len(X)
+        Y_mean = sum(Y) / len(Y)
+        
+        # Compute slope
+        numerator = sum((X[i] - X_mean) * (Y[i] - Y_mean) for i in range(len(X)))
+        denominator = sum((X[i] - X_mean) ** 2 for i in range(len(X)))
+        slope = numerator / denominator
+        
+        # Compute intercept
+        intercept = Y_mean - slope * X_mean
+
+        return slope, intercept
+
+    def implement_walker_eq(self):
+        self.df["y"] = self.df.apply(
+            lambda row: np.log(row["da_dN"]) - (row["M"] * np.log(row["Delta K"])),
+            axis = 1
+        )
+
+        self.df['x'] = self.df.apply(
+            lambda row: row["M"] * np.log(1 - row["R- Ratio"]),
+            axis = 1
+        )
+
+    def linear_walker_regr(self):
+        features = ['Temperature,K']
+        target = 'm'
+        X = self.df[features]
+        y = self.df[target]
+
+        linear_model = LinearRegression()
+        linear_model.fit(X, y)
+
+        self.intercept = linear_model.intercept_
+        self.slope = linear_model.coef_[0]
+
+        # Predict full set
+        X_full = self.df[['Temperature,K']]
+        self.df['M'] = linear_model.predict(X_full)  # predicted m
+
+        self.compute_M = lambda temp_C, intercept, slope: intercept + slope * (temp_C + 273.15)
+
+    def arrhenius_walker_regr(self):
+        R = 8.314  # J/mol·K
+        X = 1 / self.df['Temperature,K'].values.reshape(-1, 1)
+        y_log = np.log(self.df['m'].values)
+
+        arrhenius_model = LinearRegression()
+        arrhenius_model.fit(X, y_log)
+
+        # Evaluate
+        lnA = arrhenius_model.intercept_
+        Ea_over_R = -arrhenius_model.coef_[0]
+        Ea = Ea_over_R * R
+        self.slope = lnA
+        self.intercept = Ea
+
+        # Predict full set
+        X_full = 1 / self.df['Temperature,K'].values.reshape(-1, 1)
+        log_m_pred = arrhenius_model.predict(X_full)
+        self.df['M'] = np.exp(log_m_pred)
+
+        self.compute_M = lambda temp_C, Ea, lnA: np.exp(lnA - Ea / (R * (temp_C + 273.15)))
+
+    def regression_walker_eq(self):
+        self.df["y"] = self.df.apply(
+            lambda row: np.log(row["da_dN"]) - (row["M"] * np.log(row["Delta K"])),
+            axis = 1
+        )
+
+        self.df['x'] = self.df.apply(
+            lambda row: row["M"] * np.log(1 - row["R- Ratio"]),
+            axis = 1
+        )
+
+        slope, intercept = self.lin_reg(self.df['x'], self.df["y"])
+        self.slope_, self.intercept_=  slope, intercept
+
+        self.C = np.exp(intercept)
+        self.gamma = slope
+
+        self.df['da/dN_calc'] = self.df.apply(
+            lambda row: self.C * ((row["Delta K"] * ((1 - row["R- Ratio"])** self.gamma)) ** row["M"]),
+            axis = 1
+        )
+
+    def regression_plot(self, slope, intercept):
+        x_values = np.linspace(self.df['x'].min(), self.df['x'].max(), 100)
+
+        y_values = (
+            slope * x_values + intercept
+        )
+
+        fig, ax = plt.subplots(figsize=(10,6))
+        ax.plot(x_values, y_values, color="red", linestyle="-", linewidth=2, label="Regressed lines")
+        ax.scatter(self.df['x'], self.df['y'], color="darkblue", label="Data points")
+
+        ax.set_xlabel("X", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Y", fontsize=12, fontweight="bold")
+        ax.set_title("Walker model - regression", fontsize=14, fontweight="bold")
+
+        ax.grid(True, linestyle="-", alpha=0.6)
+        ax.legend(fontsize=12)
+
+        st.pyplot(fig)
+
+    def regression_dAdN_plot(self):
+        actual = self.df['da_dN']
+        predicted = self.df['da/dN_calc']
+
+        fig, ax = plt.subplots(figsize=(10,6))
+        ax.scatter(actual, predicted, color='blue', alpha=0.6, label='Predicted vs Actual da/dN')
+
+        # Reference line (perfect prediction)
+        ax.plot([actual.min(), actual.max()], [actual.min(), actual.max()], 'r--', label='Ideal Fit')
+
+        ax.set_xlabel('Actual da/dN', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Predicted da/dN', fontsize=12, fontweight='bold')
+        ax.set_title('Model: Predicted vs Actual da/dN', fontsize=14, fontweight='bold')
+        ax.legend(fontsize=12)
+        ax.grid(True, linestyle='-', alpha=0.6)
+        st.pyplot(fig)
+
+    def regression_dAdN_error_plot(self):
+        error = self.df["da/dN_calc"] - self.df["da_dN"]
+
+        fig, ax = plt.subplots(figsize=(10,6))
+        ax.hist(error, bins=20, color='teal', edgecolor='black', alpha=0.7)
+
+        ax.set_xlabel('Prediction Error (Calc - Actual)')
+        ax.set_ylabel('Frequency')
+        ax.set_title('Histogram of da/dN Prediction Errors')
+        ax.grid(True)
+        st.pyplot(fig)
+
+    def plot_da_dN_vs_deltaK_equation(self):
+        delta_K_vals = np.linspace(5, 25, 200)
+        
+
+        temp_C = st.selectbox("Temperature",(self.df['Temperature, C'].unique()),key=f"plot_da_dN_vs_deltaK_equation{self.linear}")
+        M = self.compute_M(temp_C, self.intercept, self.slope)
+
+        plot_all = st.toggle("Plot different K values",key=f"plot_da_dN_vs_deltaK_equation_toggle{self.linear}")
+        fig, ax = plt.subplots(figsize=(10,6))
+
+        if plot_all:
+            r_ratio_vals = np.linspace(0.05, 0.9, 10)
+            delta_K_range = np.linspace(5, 25, 200)
+            for r in r_ratio_vals:
+                da_dN_vals = []
+                for dk in delta_K_range:
+                    M = self.compute_M(temp_C, self.intercept, self.slope)
+                    base = dk * (max(1e-8, (1 - r)) ** self.gamma)  # epsilon to prevent divide-by-zero
+                    da_dN = self.C * (base ** M)
+                    da_dN_vals.append(da_dN)
+
+                ax.plot(delta_K_range, da_dN_vals, label=f'R = {r:.2f}')
+
+                scatter_df = self.df[
+                    (self.df['Temperature, C'] == temp_C) &
+                    (np.isclose(self.df['R- Ratio'], r, rtol=1e-2))
+                ]
+                # print(not scatter_df.empty)
+                if not scatter_df.empty:
+                    ax.scatter(scatter_df['Delta K'], scatter_df['da_dN'], label=f'Actual R={r:.2f}', alpha=0.5)
+
+                    
+                ax.set_title(f'da/dN vs ΔK at T={temp_C}°C, for various R-ratios')
+
+        else:
+            da_dN_vals = []
+            rr = self.df['R- Ratio'].unique()
+            r_ratio = st.select_slider(
+                "Select a value for R",
+                options=[k for k in np.arange(min(rr),max(rr)+1,0.1)]
+            )
+            for dk in delta_K_vals:
+                da_dN = self.C * ((dk * (1 - r_ratio) ** self.gamma) ** M)
+                da_dN_vals.append(da_dN)
+
+            ax.plot(delta_K_vals, da_dN_vals, label='Predicted by Equation', color='darkorange')
+
+            scatter_df = self.df[
+                (self.df['Temperature, C'] == temp_C) &
+                (np.isclose(self.df['R- Ratio'], r_ratio, rtol=1e-2))
+            ]
+
+            if not scatter_df.empty:
+                ax.scatter(scatter_df['Delta K'], scatter_df['da_dN'], label='Actual data', color='navy')
+
+            
+            ax.set_title(f'da/dN vs ΔK at T={temp_C}°C, R={r_ratio}')
+
+        ax.plot(delta_K_vals, da_dN_vals, label='Predicted by Equation', color='darkorange')
+        ax.set_xlabel('ΔK')
+        ax.set_ylabel('da/dN')
+        ax.legend()
+        ax.grid(True)
+        st.pyplot(fig)
+
+    def plot_da_dN_vs_r_ratio_equation(self):
+        r_ratio_vals = np.linspace(0.05, 1, 200)
+        delta_K_vals = [5, 10, 15, 20, 25]
+
+        fig, ax = plt.subplots(figsize=(10,6))
+
+        # option to select temperature
+        temp_C = st.selectbox("Temperature",(self.df['Temperature, C'].unique()),key=f"plot_da_dN_vs_r_ratio_equation{self.linear}")
+        M = self.compute_M(temp_C, self.intercept, self.slope)
+
+        # option to plot all of the values, or just to play with one 
+        plot_all = st.toggle("Plot different K values",key=f"plot_da_dN_vs_r_ratio_equation_toggle{self.linear}")
+
+        if plot_all:
+            for dk in delta_K_vals:
+                da_dN_vals = []
+                for r in r_ratio_vals:
+                    da_dN = self.C * ((dk * (1 - r) ** self.gamma) ** M)
+                    da_dN_vals.append(da_dN)
+
+                ax.plot(r_ratio_vals, da_dN_vals, label='Predicted by Equation', color='darkorange')
+
+                scatter_df = self.df[
+                    (self.df['Temperature, C'] == temp_C) &
+                    (np.isclose(self.df['Delta K'], dk, rtol=1e-2))
+                ]
+                if not scatter_df.empty:
+                    plt.scatter(scatter_df['R- Ratio'], scatter_df['da_dN'], label=f'Actual ΔK={dk}', alpha=0.6)
+
+            ax.set_title(f'da/dN vs R at T={temp_C}°C')
+        else:
+            da_dN_vals = []
+            ks = self.df['Delta K'].unique()
+            dk = st.select_slider(
+                "Select a value for K",
+                options=[k for k in range(min(ks)-1,max(ks)+1,1)]
+            )
+
+
+            for r in r_ratio_vals:
+                da_dN = self.C * ((dk * (1 - r) ** self.gamma) ** M)
+                da_dN_vals.append(da_dN)
+
+            ax.plot(r_ratio_vals, da_dN_vals, label='Predicted by Equation', color='darkorange')
+
+            scatter_df = self.df[
+                        (self.df['Temperature, C'] == temp_C) & (np.isclose(self.df['Delta K'],dk, rtol=1e-2))
+                    ]
+            if not scatter_df.empty:
+                ax.scatter(scatter_df['R- Ratio'], scatter_df['da_dN'], label=f'Actual ΔK={dk}')
+            
+            ax.set_title(f'da/dN vs R at T={temp_C}°C, ΔK={dk}')
+
+        ax.set_xlabel('R-Ratio')
+        ax.set_ylabel('da/dN')
+        ax.legend()
+        ax.grid(True)
+        st.pyplot(fig)
+
+    def plot_da_dN_vs_temperature_equation(self):
+        temp_vals = np.linspace(50, 300, 300)
+        da_dN_vals = []
+
+        plot_type = st.radio(
+            "Select Plot Type:",
+            ("Different K ratios", "Different R ratios", "Custom"),
+            help="Choose the type of plot you want"
+        )
+
+        def da_dN(temp_C, dk, r_ratio, ax,doLabel=False):
+            M = self.compute_M(temp_C, self.intercept, self.slope)
+            scatter_df = self.df[
+                (np.isclose(self.df['Delta K'], dk, rtol=1e-2)) &
+                (np.isclose(self.df['R- Ratio'], r_ratio, rtol=1e-2))
+            ]
+
+            if not scatter_df.empty:
+                if doLabel:
+                    ax.scatter(scatter_df['Temperature, C'], scatter_df['da_dN'], label='Actual data')
+                else:
+                    ax.scatter(scatter_df['Temperature, C'], scatter_df['da_dN'])
+
+            return self.C * ((dk * (1 - r_ratio) ** self.gamma) ** M)
+        
+        # Start Plotting
+        fig, ax = plt.subplots(figsize=(10,6))
+
+        if plot_type=="Different R ratios":
+            ks = self.df['Delta K'].unique()
+            dk = st.select_slider(
+                "Select a value for K",
+                options=[k for k in range(min(ks)-1,max(ks)+1,1)],key=f"plot_da_dN_vs_temperature_equation_dk32{self.linear}"
+            )
+
+            r_ratio_vals = np.linspace(0.05, 0.9, 10)
+            
+            for r in r_ratio_vals:
+                da_dN_vals = []
+                for temp_C in temp_vals:
+                    da_dN_vals.append(da_dN(temp_C, dk, r,ax))
+
+                ax.plot(temp_vals, da_dN_vals, label=f'R = {r:.2f}')
+
+            ax.set_title(f'Fatigue Crack Growth Rate vs Temperature at ΔK={dk} MPa√m')
+
+        elif plot_type=="Different K ratios":
+            rr = self.df['R- Ratio'].unique()
+            r_ratio = st.select_slider(
+                "Select a value for R",
+                options=[k for k in np.arange(min(rr),max(rr)+1,0.1)],key=f"plot_da_dN_vs_temperature_equation_dk12{self.linear}"
+            )
+
+            delta_K_vals = [5, 10, 15, 20, 25]
+
+            for dk in delta_K_vals:
+                da_dN_vals = []
+                for temp_C in temp_vals:
+                    da_dN_vals.append(da_dN(temp_C, dk, r_ratio,ax))
+
+                ax.plot(temp_vals, da_dN_vals, label=f'ΔK = {dk:.2f}')
+
+            ax.set_title(f'Fatigue Crack Growth Rate vs Temperature at R={r_ratio} MPa√m')
+
+        else:
+            ks = self.df['Delta K'].unique()
+            dk = st.select_slider(
+                "Select a value for K",
+                options=[k for k in range(min(ks)-1,max(ks)+1,1)],key=f"plot_da_dN_vs_temperature_equation_dk{self.linear}"
+            )
+
+            rr = self.df['R- Ratio'].unique()
+            r_ratio = st.select_slider(
+                "Select a value for R",
+                options=[k for k in np.arange(min(rr),max(rr)+1,0.1)],key=f"plot_da_dN_vs_temperature_equation_r{self.linear}"
+            )
+
+            count_scatter = 0
+            for temp_C in temp_vals:
+                if count_scatter!=0:
+                    da_dN_vals.append(da_dN(temp_C, dk, r_ratio,ax))
+                else:
+                    da_dN_vals.append(da_dN(temp_C, dk, r_ratio,ax, True))
+                    count_scatter +=1
+
+            ax.set_title(f'Fatigue Crack Growth Rate vs Temperature at ΔK={dk} and R={r_ratio} MPa√m')
+        
+            ax.plot(temp_vals, da_dN_vals, label='Predicted by Equation', color='darkorange')
+        
+        ax.set_xlabel('Temperature, C')
+        ax.set_ylabel('da/dN')
+        
+        ax.legend()
+        ax.grid(True)
+        st.pyplot(fig)
+
+    def st_description(self):
+        st.header("📋 Mathematical Formulation")
+        
+        st.markdown("### Model Equation")
+
+        st.write(
+            "The crack growth rate model is given by the following equation:"
+        )
+
+        st.latex(r"""
+        \frac{da}{dN} = C \left[ \left(1-r\right)^\gamma \, \Delta k \, \right] ^m
+        """)
+
+        st.markdown(
+            """
+            where:
+            - $\\frac{da}{dN}$ is the crack growth rate,
+            - $C$ is a material constant,
+            - $\\gamma$ is a fitting parameter,
+            - $r$ is the stress ratio,
+            - $\\Delta k$ is the stress intensity factor range,
+            - $m$ is the crack growth exponent.
+            """
+        )
+
+        st.markdown("### Linearization for Regression")
+
+        st.write(
+            "To determine the constants $C$ and $\\gamma$, we can transform the model into a linear form:"
+        )
+
+        st.latex(r"""
+        \ln\left(\frac{da}{dN}\right) - m \, \ln(\Delta k) = \gamma \, m \, \ln(1-r) + C
+        """)
+
+        st.write(
+            "This transformation allows us to apply **linear regression** to estimate $C$ and $\\gamma$."
+        )
+
+        st.markdown("### Temperature Dependence of $m$")
+
+        st.write(
+            "Since $m$ varies with temperature $T$, we can approximate it using either a **linear relation**:"
+        )
+
+        st.latex(r"""
+        m(T) = U + W \, T
+        """)
+
+        st.write("or an **Arrhenius-type relation**:")
+
+        st.latex(r"""
+        m(T) = A \, \exp\left( \frac{E_a \, R}{T} \right)
+        """)
+
+        st.write(
+            r"Here, $R = 8.314 \ \mathrm{J/(mol \cdot K)}$ is the universal gas constant, "
+            r"and $A$ and $E_a$ are determined via linear regression from the experimental data."
+        )
+
+        st.markdown("### Variable Values")
+        st.markdown("In the case of data given, values of the variables are")
+
+        if self.linear:
+            variable_values = f"""
+            | Variable | Values |
+            |----------|-------------|
+            | $U_t$ | {self.intercept:.6f} |
+            | $W_t$ | {self.slope:.6f} |
+            | $C$ | {self.C:.6f} |
+            | $\gamma$ | {self.gamma:.6f} |
+            """
+        else:
+            variable_values = f"""
+            | Variable | Values |
+            |----------|-------------|
+            | $E_a$ | {self.intercept:.6f} |
+            | $lnA$ | {self.slope:.6f} |
+            | $C$ | {self.C:.6f} |
+            | $\gamma$ | {self.gamma:.6f} |
+            """
+
+        st.markdown(variable_values)    
+
