@@ -1,6 +1,6 @@
 import streamlit as st
-from probabilistic_models import * # Assuming these are defined
-from utils import * # Assuming these are defined
+from .probabilistic_models import * 
+from .utils import * 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
