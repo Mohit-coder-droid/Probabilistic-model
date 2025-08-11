@@ -1,6 +1,6 @@
 import streamlit as st
-from .probabilistic_models import * 
-from .utils import * 
+from probabilistic_models import * 
+from utils import * 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -292,4 +292,5 @@ try:
 
 except Exception as e:
     st.error(f"An error occurred during processing: {e}")
+
     st.exception(e) # This will show a full traceback for easier debugging
