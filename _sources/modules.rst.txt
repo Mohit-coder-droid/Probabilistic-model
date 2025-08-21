@@ -1,0 +1,9 @@
+Probabilistic-model
+===================
+
+.. toctree::
+   :maxdepth: 4
+
+   app
+   probabilistic_models
+   utils

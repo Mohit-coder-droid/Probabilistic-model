@@ -1,0 +1,990 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>probabilistic_models module &mdash; Probabilistic Model Fitting for Mechanical tests 1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=29a6c3e3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="utils module" href="utils.html" />
+    <link rel="prev" title="app module" href="app.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Probabilistic Model Fitting for Mechanical tests
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Probabilistic-model</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="app.html">app module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">probabilistic_models module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Exponential"><code class="docutils literal notranslate"><span class="pre">Exponential</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Exponential.estimate_params"><code class="docutils literal notranslate"><span class="pre">Exponential.estimate_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Exponential.log_likelihood"><code class="docutils literal notranslate"><span class="pre">Exponential.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Exponential.predict"><code class="docutils literal notranslate"><span class="pre">Exponential.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Exponential.st_description"><code class="docutils literal notranslate"><span class="pre">Exponential.st_description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Exponential.transform"><code class="docutils literal notranslate"><span class="pre">Exponential.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Exponential.two_var_predict"><code class="docutils literal notranslate"><span class="pre">Exponential.two_var_predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gamma"><code class="docutils literal notranslate"><span class="pre">Gamma</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gamma.estimate_params"><code class="docutils literal notranslate"><span class="pre">Gamma.estimate_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gamma.log_likelihood"><code class="docutils literal notranslate"><span class="pre">Gamma.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gamma.predict"><code class="docutils literal notranslate"><span class="pre">Gamma.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gamma.st_description"><code class="docutils literal notranslate"><span class="pre">Gamma.st_description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gamma.transform"><code class="docutils literal notranslate"><span class="pre">Gamma.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gamma.two_var_predict"><code class="docutils literal notranslate"><span class="pre">Gamma.two_var_predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gumbell"><code class="docutils literal notranslate"><span class="pre">Gumbell</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gumbell.estimate_params"><code class="docutils literal notranslate"><span class="pre">Gumbell.estimate_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gumbell.log_likelihood"><code class="docutils literal notranslate"><span class="pre">Gumbell.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gumbell.predict"><code class="docutils literal notranslate"><span class="pre">Gumbell.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gumbell.st_description"><code class="docutils literal notranslate"><span class="pre">Gumbell.st_description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gumbell.transform"><code class="docutils literal notranslate"><span class="pre">Gumbell.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.Gumbell.two_var_predict"><code class="docutils literal notranslate"><span class="pre">Gumbell.two_var_predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel"><code class="docutils literal notranslate"><span class="pre">LognormalModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel.estimate_params"><code class="docutils literal notranslate"><span class="pre">LognormalModel.estimate_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel.log_likelihood"><code class="docutils literal notranslate"><span class="pre">LognormalModel.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel.predict"><code class="docutils literal notranslate"><span class="pre">LognormalModel.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel.st_description"><code class="docutils literal notranslate"><span class="pre">LognormalModel.st_description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel.transform"><code class="docutils literal notranslate"><span class="pre">LognormalModel.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel.two_var_predict"><code class="docutils literal notranslate"><span class="pre">LognormalModel.two_var_predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel3"><code class="docutils literal notranslate"><span class="pre">LognormalModel3</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel3.estimate_params"><code class="docutils literal notranslate"><span class="pre">LognormalModel3.estimate_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel3.log_likelihood"><code class="docutils literal notranslate"><span class="pre">LognormalModel3.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel3.minimize"><code class="docutils literal notranslate"><span class="pre">LognormalModel3.minimize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel3.predict"><code class="docutils literal notranslate"><span class="pre">LognormalModel3.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel3.st_description"><code class="docutils literal notranslate"><span class="pre">LognormalModel3.st_description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.LognormalModel3.transform"><code class="docutils literal notranslate"><span class="pre">LognormalModel3.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.NormalModel"><code class="docutils literal notranslate"><span class="pre">NormalModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.NormalModel.estimate_params"><code class="docutils literal notranslate"><span class="pre">NormalModel.estimate_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.NormalModel.log_likelihood"><code class="docutils literal notranslate"><span class="pre">NormalModel.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.NormalModel.predict"><code class="docutils literal notranslate"><span class="pre">NormalModel.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.NormalModel.st_description"><code class="docutils literal notranslate"><span class="pre">NormalModel.st_description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.NormalModel.transform"><code class="docutils literal notranslate"><span class="pre">NormalModel.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.NormalModel.two_var_predict"><code class="docutils literal notranslate"><span class="pre">NormalModel.two_var_predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel"><code class="docutils literal notranslate"><span class="pre">ProbModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel.log_likelihood"><code class="docutils literal notranslate"><span class="pre">ProbModel.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel.minimize"><code class="docutils literal notranslate"><span class="pre">ProbModel.minimize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel.power_st_description"><code class="docutils literal notranslate"><span class="pre">ProbModel.power_st_description()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel.predict"><code class="docutils literal notranslate"><span class="pre">ProbModel.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel.st_description"><code class="docutils literal notranslate"><span class="pre">ProbModel.st_description()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq"><code class="docutils literal notranslate"><span class="pre">WalkerEq</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.arrhenius_walker_regr"><code class="docutils literal notranslate"><span class="pre">WalkerEq.arrhenius_walker_regr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.implement_paris_eq"><code class="docutils literal notranslate"><span class="pre">WalkerEq.implement_paris_eq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.implement_walker_eq"><code class="docutils literal notranslate"><span class="pre">WalkerEq.implement_walker_eq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.lin_reg"><code class="docutils literal notranslate"><span class="pre">WalkerEq.lin_reg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.linear_walker_regr"><code class="docutils literal notranslate"><span class="pre">WalkerEq.linear_walker_regr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_deltaK_equation"><code class="docutils literal notranslate"><span class="pre">WalkerEq.plot_da_dN_vs_deltaK_equation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_r_ratio_equation"><code class="docutils literal notranslate"><span class="pre">WalkerEq.plot_da_dN_vs_r_ratio_equation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_temperature_equation"><code class="docutils literal notranslate"><span class="pre">WalkerEq.plot_da_dN_vs_temperature_equation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.regression_dAdN_error_plot"><code class="docutils literal notranslate"><span class="pre">WalkerEq.regression_dAdN_error_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.regression_dAdN_plot"><code class="docutils literal notranslate"><span class="pre">WalkerEq.regression_dAdN_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.regression_plot"><code class="docutils literal notranslate"><span class="pre">WalkerEq.regression_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.regression_walker_eq"><code class="docutils literal notranslate"><span class="pre">WalkerEq.regression_walker_eq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WalkerEq.st_description"><code class="docutils literal notranslate"><span class="pre">WalkerEq.st_description()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel"><code class="docutils literal notranslate"><span class="pre">WeibullModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel.estimate_params"><code class="docutils literal notranslate"><span class="pre">WeibullModel.estimate_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel.log_likelihood"><code class="docutils literal notranslate"><span class="pre">WeibullModel.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel.predict"><code class="docutils literal notranslate"><span class="pre">WeibullModel.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel.st_description"><code class="docutils literal notranslate"><span class="pre">WeibullModel.st_description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel.transform"><code class="docutils literal notranslate"><span class="pre">WeibullModel.transform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel.two_var_predict"><code class="docutils literal notranslate"><span class="pre">WeibullModel.two_var_predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel3"><code class="docutils literal notranslate"><span class="pre">WeibullModel3</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel3.estimate_params"><code class="docutils literal notranslate"><span class="pre">WeibullModel3.estimate_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel3.log_likelihood"><code class="docutils literal notranslate"><span class="pre">WeibullModel3.log_likelihood()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel3.minimize"><code class="docutils literal notranslate"><span class="pre">WeibullModel3.minimize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel3.predict"><code class="docutils literal notranslate"><span class="pre">WeibullModel3.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel3.st_description"><code class="docutils literal notranslate"><span class="pre">WeibullModel3.st_description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic_model.probabilistic_models.WeibullModel3.transform"><code class="docutils literal notranslate"><span class="pre">WeibullModel3.transform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils module</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="exp.html">Fitting various probability models</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Probabilistic Model Fitting for Mechanical tests</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Probabilistic-model</a></li>
+      <li class="breadcrumb-item active">probabilistic_models module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/probabilistic_models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-probabilistic_model.probabilistic_models">
+<span id="probabilistic-models-module"></span><h1>probabilistic_models module<a class="headerlink" href="#module-probabilistic_model.probabilistic_models" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Exponential">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">Exponential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_values2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Exponential"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Exponential" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel" title="probabilistic_model.probabilistic_models.ProbModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProbModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Exponential.estimate_params">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Exponential.estimate_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Exponential.estimate_params" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Exponential.log_likelihood">
+<span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Exponential.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Exponential.log_likelihood" title="Link to this definition"></a></dt>
+<dd><p>Log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – parameters that are to be determined</p></li>
+<li><p><strong>temp</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>sigma_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain</strong> (<em>np.ndarray</em>) – Defaults to np.array([]).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives a negative sum of log likelihood for given data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Exponential.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Exponential.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Exponential.predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdf</strong> (<em>float</em>)</p></li>
+<li><p><strong>temperature_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain_values</strong> (<em>np.ndarray</em>) – Defaults to np.array([])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predict values according to the trained model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Exponential.st_description">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_description</span></span><a class="headerlink" href="#probabilistic_model.probabilistic_models.Exponential.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Exponential.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Exponential.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Exponential.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Exponential.two_var_predict">
+<span class="sig-name descname"><span class="pre">two_var_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Exponential.two_var_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Exponential.two_var_predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values when there are two accelerating variables</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>cdf (float)
+temperature_values (np.ndarray)
+strain_values (np.ndarray)
+params (np.ndarray): Parameters that will be needed to predict values</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><cite>u,w,v= params</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gamma">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">Gamma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_values2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gamma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gamma" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel" title="probabilistic_model.probabilistic_models.ProbModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProbModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gamma.estimate_params">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gamma.estimate_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gamma.estimate_params" title="Link to this definition"></a></dt>
+<dd><p>Fit a gamma model on the <cite>data</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>np.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives shape and scale of the fitted gamma model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gamma.log_likelihood">
+<span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gamma.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gamma.log_likelihood" title="Link to this definition"></a></dt>
+<dd><p>Log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – parameters that are to be determined</p></li>
+<li><p><strong>temp</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>sigma_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain</strong> (<em>np.ndarray</em>) – Defaults to np.array([]).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives a negative sum of log likelihood for given data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gamma.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gamma.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gamma.predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdf</strong> (<em>float</em>)</p></li>
+<li><p><strong>temperature_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain_values</strong> (<em>np.ndarray</em>) – Defaults to np.array([])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predict values according to the trained model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gamma.st_description">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_description</span></span><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gamma.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gamma.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gamma.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gamma.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gamma.two_var_predict">
+<span class="sig-name descname"><span class="pre">two_var_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gamma.two_var_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gamma.two_var_predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values when there are two accelerating variables</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>cdf (float)
+temperature_values (np.ndarray)
+strain_values (np.ndarray)
+params (np.ndarray): Parameters that will be needed to predict values</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><cite>shape,u,w,v= params</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gumbell">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">Gumbell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_values2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gumbell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gumbell" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel" title="probabilistic_model.probabilistic_models.ProbModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProbModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gumbell.estimate_params">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gumbell.estimate_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gumbell.estimate_params" title="Link to this definition"></a></dt>
+<dd><p>Fit a gumbell model on the <cite>data</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>np.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives shape and scale of the fitted gumbell model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gumbell.log_likelihood">
+<span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gumbell.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gumbell.log_likelihood" title="Link to this definition"></a></dt>
+<dd><p>Log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – parameters that are to be determined</p></li>
+<li><p><strong>temp</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>sigma_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain</strong> (<em>np.ndarray</em>) – Defaults to np.array([]).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives a negative sum of log likelihood for given data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gumbell.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gumbell.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gumbell.predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdf</strong> (<em>float</em>)</p></li>
+<li><p><strong>temperature_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain_values</strong> (<em>np.ndarray</em>) – Defaults to np.array([])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predict values according to the trained model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gumbell.st_description">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_description</span></span><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gumbell.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gumbell.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gumbell.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gumbell.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.Gumbell.two_var_predict">
+<span class="sig-name descname"><span class="pre">two_var_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#Gumbell.two_var_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.Gumbell.two_var_predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values when there are two accelerating variables</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>cdf (float)
+temperature_values (np.ndarray)
+strain_values (np.ndarray)
+params (np.ndarray): Parameters that will be needed to predict values</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><cite>u,w,scale,v= params</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">LognormalModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_values2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_law</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel" title="probabilistic_model.probabilistic_models.ProbModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProbModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel.estimate_params">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel.estimate_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel.estimate_params" title="Link to this definition"></a></dt>
+<dd><p>Fit a Lognormal model on the <cite>data</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>np.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives shape and scale of the fitted Lognormal model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel.log_likelihood">
+<span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel.log_likelihood" title="Link to this definition"></a></dt>
+<dd><p>Log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – parameters that are to be determined</p></li>
+<li><p><strong>temp</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>sigma_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain</strong> (<em>np.ndarray</em>) – Defaults to np.array([]).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives a negative sum of log likelihood for given data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel.predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdf</strong> (<em>float</em>)</p></li>
+<li><p><strong>temperature_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain_values</strong> (<em>np.ndarray</em>) – Defaults to np.array([])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predict values according to the trained model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel.st_description">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_description</span></span><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel.two_var_predict">
+<span class="sig-name descname"><span class="pre">two_var_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel.two_var_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel.two_var_predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values when there are two accelerating variables</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>cdf (float)
+temperature_values (np.ndarray)
+strain_values (np.ndarray)
+params (np.ndarray): Parameters that will be needed to predict values</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><cite>k, m, sigma, l= params</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel3">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">LognormalModel3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel3" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel" title="probabilistic_model.probabilistic_models.ProbModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProbModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel3.estimate_params">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel3.estimate_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel3.estimate_params" title="Link to this definition"></a></dt>
+<dd><p>Fit a lognormal 3-parameter model on the <cite>data</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>np.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives shape and scale of the fitted lognormal 3-parameter model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel3.log_likelihood">
+<span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel3.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel3.log_likelihood" title="Link to this definition"></a></dt>
+<dd><p>Log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – parameters that are to be determined</p></li>
+<li><p><strong>temp</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>sigma_values</strong> (<em>np.ndarray</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives a negative sum of log likelihood for given data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel3.minimize">
+<span class="sig-name descname"><span class="pre">minimize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel3.minimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel3.minimize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel3.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel3.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel3.predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdf</strong> (<em>float</em>)</p></li>
+<li><p><strong>temperature_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain_values</strong> (<em>np.ndarray</em>) – Defaults to np.array([])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predict values according to the trained model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel3.st_description">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_description</span></span><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel3.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.LognormalModel3.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#LognormalModel3.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.LognormalModel3.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.NormalModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">NormalModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_values2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#NormalModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.NormalModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel" title="probabilistic_model.probabilistic_models.ProbModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProbModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.NormalModel.estimate_params">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#NormalModel.estimate_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.NormalModel.estimate_params" title="Link to this definition"></a></dt>
+<dd><p>Fit a normal model on the <cite>data</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>np.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives shape and scale of the fitted normal model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.NormalModel.log_likelihood">
+<span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#NormalModel.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.NormalModel.log_likelihood" title="Link to this definition"></a></dt>
+<dd><p>Log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – parameters that are to be determined</p></li>
+<li><p><strong>temp</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>sigma_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain</strong> (<em>np.ndarray</em>) – Defaults to np.array([]).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives a negative sum of log likelihood for given data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.NormalModel.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#NormalModel.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.NormalModel.predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdf</strong> (<em>float</em>)</p></li>
+<li><p><strong>temperature_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain_values</strong> (<em>np.ndarray</em>) – Defaults to np.array([])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predict values according to the trained model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.NormalModel.st_description">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_description</span></span><a class="headerlink" href="#probabilistic_model.probabilistic_models.NormalModel.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.NormalModel.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#NormalModel.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.NormalModel.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.NormalModel.two_var_predict">
+<span class="sig-name descname"><span class="pre">two_var_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#NormalModel.two_var_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.NormalModel.two_var_predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values when there are two accelerating variables</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>cdf (float)
+temperature_values (np.ndarray)
+strain_values (np.ndarray)
+params (np.ndarray): Parameters that will be needed to predict values</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><cite>sigma, k, m, l= params</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.ProbModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">ProbModel</span></span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#ProbModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.ProbModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.ProbModel.log_likelihood">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#ProbModel.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.ProbModel.log_likelihood" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.ProbModel.minimize">
+<span class="sig-name descname"><span class="pre">minimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#ProbModel.minimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.ProbModel.minimize" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.ProbModel.power_st_description">
+<span class="sig-name descname"><span class="pre">power_st_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">re_cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ar_cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fatigue_cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#ProbModel.power_st_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.ProbModel.power_st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.ProbModel.predict">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#ProbModel.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.ProbModel.predict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.ProbModel.st_description">
+<span class="sig-name descname"><span class="pre">st_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">re_cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ar_cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fatigue_cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#ProbModel.st_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.ProbModel.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">WalkerEq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isLinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.arrhenius_walker_regr">
+<span class="sig-name descname"><span class="pre">arrhenius_walker_regr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.arrhenius_walker_regr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.arrhenius_walker_regr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.implement_paris_eq">
+<span class="sig-name descname"><span class="pre">implement_paris_eq</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.implement_paris_eq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.implement_paris_eq" title="Link to this definition"></a></dt>
+<dd><p>Implementation of Paris–Erdoğan equation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.implement_walker_eq">
+<span class="sig-name descname"><span class="pre">implement_walker_eq</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.implement_walker_eq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.implement_walker_eq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.lin_reg">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lin_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.lin_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.lin_reg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.linear_walker_regr">
+<span class="sig-name descname"><span class="pre">linear_walker_regr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.linear_walker_regr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.linear_walker_regr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_deltaK_equation">
+<span class="sig-name descname"><span class="pre">plot_da_dN_vs_deltaK_equation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.plot_da_dN_vs_deltaK_equation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_deltaK_equation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_r_ratio_equation">
+<span class="sig-name descname"><span class="pre">plot_da_dN_vs_r_ratio_equation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.plot_da_dN_vs_r_ratio_equation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_r_ratio_equation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_temperature_equation">
+<span class="sig-name descname"><span class="pre">plot_da_dN_vs_temperature_equation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.plot_da_dN_vs_temperature_equation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.plot_da_dN_vs_temperature_equation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.regression_dAdN_error_plot">
+<span class="sig-name descname"><span class="pre">regression_dAdN_error_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.regression_dAdN_error_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.regression_dAdN_error_plot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.regression_dAdN_plot">
+<span class="sig-name descname"><span class="pre">regression_dAdN_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.regression_dAdN_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.regression_dAdN_plot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.regression_plot">
+<span class="sig-name descname"><span class="pre">regression_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intercept</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.regression_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.regression_plot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.regression_walker_eq">
+<span class="sig-name descname"><span class="pre">regression_walker_eq</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.regression_walker_eq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.regression_walker_eq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WalkerEq.st_description">
+<span class="sig-name descname"><span class="pre">st_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WalkerEq.st_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WalkerEq.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">WeibullModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_values2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_law</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel" title="probabilistic_model.probabilistic_models.ProbModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProbModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel.estimate_params">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel.estimate_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel.estimate_params" title="Link to this definition"></a></dt>
+<dd><p>Fit a weibull model on the <cite>data</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>np.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives shape and scale of the fitted weibull model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel.log_likelihood">
+<span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel.log_likelihood" title="Link to this definition"></a></dt>
+<dd><p>Log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – parameters that are to be determined</p></li>
+<li><p><strong>temp</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>sigma_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain</strong> (<em>np.ndarray</em>) – Defaults to np.array([]).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives a negative sum of log likelihood for given data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([],</span> <span class="pre">dtype=float64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel.predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdf</strong> (<em>float</em>)</p></li>
+<li><p><strong>temperature_values</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>strain_values</strong> (<em>np.ndarray</em>) – Defaults to np.array([])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Predict values according to the trained model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel.st_description">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_description</span></span><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel.st_description" title="Link to this definition"></a></dt>
+<dd><p>Description of this model to be used in the streamlit website</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel.two_var_predict">
+<span class="sig-name descname"><span class="pre">two_var_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strain_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel.two_var_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel.two_var_predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values when there are two accelerating variables</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>cdf (float)
+temperature_values (np.ndarray)
+strain_values (np.ndarray)
+params (np.ndarray): Parameters that will be needed to predict values</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><cite>shape, intercept, slope, v = params</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel3">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probabilistic_model.probabilistic_models.</span></span><span class="sig-name descname"><span class="pre">WeibullModel3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel3" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#probabilistic_model.probabilistic_models.ProbModel" title="probabilistic_model.probabilistic_models.ProbModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProbModel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel3.estimate_params">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel3.estimate_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel3.estimate_params" title="Link to this definition"></a></dt>
+<dd><p>Fit a weibull 3-parameter model on the <cite>data</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>np.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives shape and scale of the fitted weibull 3-parameter model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel3.log_likelihood">
+<span class="sig-name descname"><span class="pre">log_likelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel3.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel3.log_likelihood" title="Link to this definition"></a></dt>
+<dd><p>Log likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em>) – parameters that are to be determined</p></li>
+<li><p><strong>temp</strong> (<em>np.ndarray</em>)</p></li>
+<li><p><strong>sigma_values</strong> (<em>np.ndarray</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gives a negative sum of log likelihood for given data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel3.minimize">
+<span class="sig-name descname"><span class="pre">minimize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel3.minimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel3.minimize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel3.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel3.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel3.predict" title="Link to this definition"></a></dt>
+<dd><p>To predict values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cdf</strong> (<em>float</em>)</p></li>
+<li><p><strong>temperature_values</strong> (<em>np.ndarray</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predict values according to the trained model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel3.st_description">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_description</span></span><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel3.st_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="probabilistic_model.probabilistic_models.WeibullModel3.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probabilistic_model/probabilistic_models.html#WeibullModel3.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probabilistic_model.probabilistic_models.WeibullModel3.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app.html" class="btn btn-neutral float-left" title="app module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-right" title="utils module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Mohit Sahu and Chiranjeeb Debata.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
