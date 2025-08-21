@@ -1,6 +1,5 @@
 import streamlit as st
-from probabilistic_models import * 
-from utils import * 
+from probabilistic_model import * 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

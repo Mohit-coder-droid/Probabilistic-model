@@ -8,7 +8,7 @@ from scipy.optimize import differential_evolution
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from scipy import optimize   # to be deleted later on
-from utils import median_rank
+from .utils import median_rank
 import streamlit as st
 
 class ProbModel(ABC):
