@@ -1,7 +1,0 @@
-utils module
-============
-
-.. automodule:: probabilistic_model.utils
-   :members:
-   :show-inheritance:
-   :undoc-members:

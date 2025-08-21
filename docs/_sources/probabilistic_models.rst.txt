@@ -1,7 +1,0 @@
-probabilistic\_models module
-============================
-
-.. automodule:: probabilistic_model.probabilistic_models
-   :members:
-   :show-inheritance:
-   :undoc-members:
